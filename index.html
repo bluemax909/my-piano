@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>חידון תווים - משחקון של 50 + דשבורד</title>
+<style>
+  body {
+    font-family: 'Comic Sans MS', 'Arial', sans-serif;
+    background-color: #f0f8ff;
+    direction: rtl;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: flex-start;
+    margin: 20px;
+  }
+  .quiz { text-align: center; flex: 1; }
+  .stats {
+    width: 300px; background: #fff; border: 2px solid #333; border-radius: 10px;
+    padding: 15px; font-size: 16px; position: sticky; top: 20px;
+  }
+  canvas { border: 2px solid #333; background-color: white; margin: 20px auto; display: block; }
+  input[type=text] { padding: 10px; font-size: 18px; margin-top: 10px; width: 260px; }
+  button { padding: 10px 20px; font-size: 16px; margin: 10px; cursor: pointer; border-radius: 8px; }
+  #feedback { font-weight: bold; margin-top: 10px; min-height: 24px; }
+  .correct { color: green; }
+  .wrong { color: red; }
+  .hidden { display: none; }
+
+  /* Dashboard */
+  .dashboard {
+    max-width: 980px; margin: 0 auto; background: #fff; border: 3px solid #004aad; border-radius: 16px; padding: 16px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+  .dashboard h1 {
+    font-size: 2em;
+    color: #004aad;
+    text-shadow: 2px 2px 3px #aad4ff;
+    text-align: center;
+    margin-bottom: 5px;
+  }
+  .dashboard h2 {
+    text-align: center;
+    color: #333;
+  }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+  th { background: #f0f0f0; }
+  .muted { color: #666; font-size: 14px; text-align: center; }
+</style>
+</head>
+<body>
+  <!-- QUIZ AREA -->
+  <div id="quizArea" class="quiz">
+    <h2>🎵 חידון זיהוי תווים במפתח סול 🎵</h2>
+    <div>
+      <button id="toDashboardBtn">לדשבורד המשחקונים</button>
+    </div>
+    <canvas id="staffCanvas" width="520" height="280"></canvas>
+    <p>מה שם התו שמופיע?</p>
+    <form id="answerForm" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="display:inline-block;">
+      <input type="text" id="answerInput" placeholder="הקלד כאן את שם התו..." 
+             autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" 
+             inputmode="latin" />
+    </form>
+    <div>
+      <button id="checkBtn">בדוק תשובה</button>
+      <button id="nextBtn">הבא</button>
+    </div>
+    <div style="margin-top:6px;">
+      <label for="difficultySelect" class="muted">רמת קושי:</label>
+      <select id="difficultySelect">
+        <option value="staff">בתוך החמשה</option>
+        <option value="plus2">חמשה + 2 קווי עזר</option>
+        <option value="plus4">חמשה + 4 קווי עזר</option>
+      </select>
+    </div>
+    <div id="feedback"></div>
+  </div>
+
+  <!-- STATS PANEL -->
+  <div class="stats" id="statsPanel">
+    <h3>סטטיסטיקה — משחקון נוכחי</h3>
+    <p class="muted">יש רק משחקון פעיל אחד בכל רגע.</p>
+    <p>שאלה <span id="questionCount">1</span> מתוך 50</p>
+    <p class="correct">נכונות: <span id="correctCount">0</span></p>
+    <p class="wrong">טעויות: <span id="wrongCount">0</span></p>
+    <p>אחוז הצלחה: <strong id="percent">0%</strong></p>
+  </div>
+
+  <!-- DASHBOARD (all gamelets) -->
+  <div id="dashboardArea" class="dashboard hidden">
+    <h1>🎶 חידון זיהוי תווים במפתח סול 🎶</h1>
+    <h2>דשבורד המשחקונים</h2>
+    <p class="muted">כל שורה מייצגת משחקון של 50 שאלות שהושלם. הכותרת היא ה־Date & Time של סיום המשחקון.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>שם (תאריך ושעה)</th>
+          <th class="correct">נכונות</th>
+          <th class="wrong">טעויות</th>
+          <th>אחוז הצלחה</th>
+        </tr>
+      </thead>
+      <tbody id="dashboardTableBody"></tbody>
+    </table>
+    <div style="text-align:right; font-size:12px; color:#777; margin-top:10px;">גרסה 0.1</div>
+    <div style="text-align:center; margin-top: 12px;">
+      <button id="backToActiveBtn">חזרה למשחקון הפעיל</button>
+      <button id="startNewBtn">התחל משחקון חדש</button>
+    </div>
+  </div>
+
+<script>
+// ===== Persistence helpers (localStorage) =====
+const STORAGE_KEYS = {
+  ACTIVE: 'noteQuiz_activeGame',
+  HISTORY: 'noteQuiz_history',
+  DIFFICULTY: 'noteQuiz_difficulty'
+};
+
+function saveActiveGame(state) {
+  localStorage.setItem(STORAGE_KEYS.ACTIVE, JSON.stringify(state));
+}
+function loadActiveGame() {
+  const raw = localStorage.getItem(STORAGE_KEYS.ACTIVE);
+  return raw ? JSON.parse(raw) : null;
+}
+function clearActiveGame() { localStorage.removeItem(STORAGE_KEYS.ACTIVE); }
+
+function saveHistory(arr) { localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(arr)); }
+function loadHistory() {
+  const raw = localStorage.getItem(STORAGE_KEYS.HISTORY);
+  return raw ? JSON.parse(raw) : [];
+}
+
+// ===== Canvas + Staff Geometry =====
+const canvas = document.getElementById('staffCanvas');
+const ctx = canvas.getContext('2d');
+const left = 50, right = 450;
+const topLineY = 80;      // line 5 (top) — shifted for more headroom
+const lineGap = 20;       // distance between staff lines
+const bottomLineY = topLineY + 4 * lineGap; // line 1 (bottom)
+
+// ===== Difficulty =====
+const DIFFICULTY = {
+  STAFF_ONLY: 'staff',       // בתוך החמשה
+  PLUS_2: 'plus2',           // חמשה + 2 קווי עזר
+  PLUS_4: 'plus4'            // חמשה + 4 קווי עזר
+};
+let difficulty = localStorage.getItem(STORAGE_KEYS.DIFFICULTY) || DIFFICULTY.PLUS_2;
+
+function setDifficulty(newLevel) {
+  difficulty = newLevel;
+  localStorage.setItem(STORAGE_KEYS.DIFFICULTY, difficulty);
+  pickAndDraw();
+}
+
+// ===== Note pool (extended) =====
+const fullNoteMap = [
+  // BELOW staff (down to D3)
+  { name: 'רה', y: bottomLineY + 10 },  // D4 space
+  { name: 'דו', y: bottomLineY + 20 },  // C4 ledger 1
+  { name: 'סי', y: bottomLineY + 30 },  // B3 space
+  { name: 'לה', y: bottomLineY + 40 },  // A3 ledger 2
+  { name: 'סול', y: bottomLineY + 50 }, // G3 space
+  { name: 'פה', y: bottomLineY + 60 },  // F3 ledger 3
+  { name: 'מי', y: bottomLineY + 70 },  // E3 space
+  { name: 'רה', y: bottomLineY + 80 },  // D3 ledger 4
+
+  // WITHIN staff (E4..F5)
+  { name: 'מי', y: bottomLineY },       // E4 line 1
+  { name: 'פה', y: bottomLineY - 10 },  // F4 space 1
+  { name: 'סול', y: bottomLineY - 20 }, // G4 line 2
+  { name: 'לה', y: bottomLineY - 30 },  // A4 space 2
+  { name: 'סי', y: bottomLineY - 40 },  // B4 line 3
+  { name: 'דו', y: bottomLineY - 50 },  // C5 space 3
+  { name: 'רה', y: bottomLineY - 60 },  // D5 line 4
+  { name: 'מי', y: bottomLineY - 70 },  // E5 space 4
+  { name: 'פה', y: bottomLineY - 80 },  // F5 line 5
+
+  // ABOVE staff (up to G6)
+  { name: 'סול', y: topLineY - 10 },    // G5 space
+  { name: 'לה', y: topLineY - 20 },     // A5 ledger 1
+  { name: 'סי', y: topLineY - 30 },     // B5 space
+  { name: 'דו', y: topLineY - 40 },     // C6 ledger 2
+  { name: 'רה', y: topLineY - 50 },     // D6 space
+  { name: 'מי', y: topLineY - 60 },     // E6 ledger 3
+  { name: 'פה', y: topLineY - 70 },     // F6 space
+  { name: 'סול', y: topLineY - 80 }     // G6 ledger 4
+];
+
+function filteredNotesByDifficulty() {
+  let minY, maxY;
+  if (difficulty === DIFFICULTY.STAFF_ONLY) {
+    minY = topLineY;               // top line
+    maxY = bottomLineY;            // bottom line
+  } else if (difficulty === DIFFICULTY.PLUS_2) {
+    minY = topLineY - 40;          // up to ledger 2 above
+    maxY = bottomLineY + 40;       // down to ledger 2 below
+  } else { // PLUS_4
+    minY = topLineY - 80;          // up to ledger 4 above
+    maxY = bottomLineY + 80;       // down to ledger 4 below
+  }
+  return fullNoteMap.filter(n => n.y >= minY && n.y <= maxY);
+}
+
+// ===== Game State =====
+let activeGame = null; // {id, startedAt, currentQuestion, correct, wrong}
+let history = loadHistory(); // [{id, finishedAt, correct, wrong, percent, title}]
+let currentNote;
+const TOTAL_QUESTIONS = 50;
+
+// ===== UI Refs =====
+const feedback = document.getElementById('feedback');
+const answerInput = document.getElementById('answerInput');
+const answerForm = document.getElementById('answerForm');
+// Prevent form submission (so Enter won't reload) and disable browser suggestions/history
+if (answerForm) {
+  answerForm.addEventListener('submit', (e) => e.preventDefault());
+}
+// Randomize the input name each load so browsers won't offer previous entries
+if (answerInput) {
+  answerInput.setAttribute('name', 'ans_' + Date.now());
+  answerInput.setAttribute('autocomplete', 'off');
+  answerInput.setAttribute('autocorrect', 'off');
+  answerInput.setAttribute('autocapitalize', 'off');
+  answerInput.setAttribute('spellcheck', 'false');
+}
+const qCount = document.getElementById('questionCount');
+const correctCount = document.getElementById('correctCount');
+const wrongCount = document.getElementById('wrongCount');
+const percentSpan = document.getElementById('percent');
+const quizArea = document.getElementById('quizArea');
+const statsPanel = document.getElementById('statsPanel');
+const dashboardArea = document.getElementById('dashboardArea');
+const dashboardTableBody = document.getElementById('dashboardTableBody');
+
+// ===== Utilities =====
+function formatDT(iso) {
+  try { return new Date(iso).toLocaleString('he-IL', { hour12: false }); }
+  catch(e){ return iso; }
+}
+function calcPercent(c, w) {
+  const total = c + w; return total === 0 ? 0 : Math.round((c / total) * 100);
+}
+
+// ===== Drawing =====
+function drawStaff() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.lineWidth = 1.5;
+  for (let i = 0; i < 5; i++) {
+    const y = topLineY + i * lineGap;
+    ctx.beginPath();
+    ctx.moveTo(left, y);
+    ctx.lineTo(right, y);
+    ctx.stroke();
+  }
+  // Treble clef
+  ctx.font = '40px serif';
+  ctx.fillText('𝄞', left + 5, topLineY + 55);
+}
+
+function drawLedgerLines(y) {
+  const centerX = (left + right) / 2;
+  const half = 22; // half length of short ledger line
+  // Above staff (lines at topLineY - 20, -40, ...)
+  for (let ly = topLineY - 20; ly >= y; ly -= 20) {
+    if (ly < topLineY && Math.abs(ly - y) <= 10) {
+      ctx.beginPath();
+      ctx.moveTo(centerX - half, ly);
+      ctx.lineTo(centerX + half, ly);
+      ctx.stroke();
+    }
+  }
+  // Below staff (lines at bottomLineY + 20, +40, ...)
+  for (let ly = bottomLineY + 20; ly <= y; ly += 20) {
+    if (ly > bottomLineY && Math.abs(ly - y) <= 10) {
+      ctx.beginPath();
+      ctx.moveTo(centerX - half, ly);
+      ctx.lineTo(centerX + half, ly);
+      ctx.stroke();
+    }
+  }
+}
+
+function drawNote(note) {
+  drawStaff();
+  // Ledger lines if needed
+  if (note.y < topLineY || note.y > bottomLineY) {
+    drawLedgerLines(note.y);
+  }
+  // Notehead
+  const centerX = (left + right) / 2;
+  ctx.beginPath();
+  ctx.ellipse(centerX, note.y, 12, 8, -0.35, 0, Math.PI * 2);
+  ctx.fillStyle = 'black';
+  ctx.fill();
+  // Stem (up if below middle line; down otherwise)
+  const middleLineY = topLineY + 2 * lineGap; // y=120
+  if (note.y > middleLineY) {
+    ctx.beginPath();
+    ctx.moveTo(centerX + 10, note.y);
+    ctx.lineTo(centerX + 10, note.y - 35);
+    ctx.stroke();
+  } else {
+    ctx.beginPath();
+    ctx.moveTo(centerX - 10, note.y);
+    ctx.lineTo(centerX - 10, note.y + 35);
+    ctx.stroke();
+  }
+}
+
+function randomNote() {
+  const pool = filteredNotesByDifficulty();
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function pickAndDraw() {
+  currentNote = randomNote();
+  drawNote(currentNote);
+  if (activeGame) {
+    qCount.textContent = activeGame.currentQuestion;
+    correctCount.textContent = activeGame.correct;
+    wrongCount.textContent = activeGame.wrong;
+    percentSpan.textContent = calcPercent(activeGame.correct, activeGame.wrong) + '%';
+  }
+  answerInput.value = '';
+  feedback.textContent = '';
+  answerInput.focus();
+}
+
+// ===== Answer Handling =====
+function normalizeAnswer(str) {
+  const s = (str || '').trim().toLowerCase();
+  const map = {
+    'דו': 'דו', 'do': 'דו',
+    'רה': 'רה', 're': 'רה',
+    'מי': 'מי', 'mi': 'מי',
+    'פה': 'פה', 'fa': 'פה',
+    'סול': 'סול', 'sol': 'סול',
+    'לה': 'לה', 'la': 'לה',
+    'סי': 'סי', 'si': 'סי', 'ti': 'סי'
+  };
+  return map[s] || s;
+}
+
+function recordAndAdvance(isCorrect) {
+  if (!activeGame) return;
+
+  if (isCorrect) {
+    activeGame.correct++;
+    feedback.textContent = 'נכון מאוד! 🎉';
+    feedback.style.color = 'green';
+  } else {
+    activeGame.wrong++;
+    feedback.textContent = `לא נכון. התשובה היא ${currentNote.name}.`;
+    feedback.style.color = 'red';
+  }
+
+  if (activeGame.currentQuestion < TOTAL_QUESTIONS) {
+    activeGame.currentQuestion++;
+    saveActiveGame(activeGame);
+    correctCount.textContent = activeGame.correct;
+    wrongCount.textContent = activeGame.wrong;
+    percentSpan.textContent = calcPercent(activeGame.correct, activeGame.wrong) + '%';
+    setTimeout(pickAndDraw, 300);
+  } else {
+    const finishedAt = new Date().toISOString();
+    const percent = calcPercent(activeGame.correct, activeGame.wrong);
+    const title = formatDT(finishedAt);
+    history.push({ id: activeGame.id, finishedAt, correct: activeGame.correct, wrong: activeGame.wrong, percent, title });
+    saveHistory(history);
+    clearActiveGame();
+    activeGame = null;
+    renderDashboard();
+    showDashboard();
+  }
+}
+
+function checkCurrentAnswer() {
+  const userAnswer = normalizeAnswer(answerInput.value);
+  if (!userAnswer) { feedback.textContent = 'אנא כתוב תשובה.'; feedback.style.color = 'black'; return null; }
+  return userAnswer === currentNote.name; // true/false
+}
+
+// ===== Dashboard =====
+function renderDashboard() {
+  dashboardTableBody.innerHTML = '';
+  if (!history.length) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="4" class="muted">אין עדיין משחקונים שהושלמו</td>`;
+    dashboardTableBody.appendChild(tr);
+    return;
+  }
+  const rows = [...history].sort((a,b) => new Date(b.finishedAt) - new Date(a.finishedAt));
+  rows.forEach(g => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${g.title}</td>
+      <td class="correct">${g.correct}</td>
+      <td class="wrong">${g.wrong}</td>
+      <td>${g.percent}%</td>
+    `;
+    dashboardTableBody.appendChild(tr);
+  });
+}
+
+function showDashboard() {
+  quizArea.classList.add('hidden');
+  statsPanel.classList.add('hidden');
+  dashboardArea.classList.remove('hidden');
+}
+function showQuiz() {
+  dashboardArea.classList.add('hidden');
+  quizArea.classList.remove('hidden');
+  statsPanel.classList.remove('hidden');
+  pickAndDraw();
+}
+
+// ===== Start / Resume game =====
+function startNewGame() {
+  if (activeGame) { alert('כבר יש משחקון פעיל. סיים אותו או עבור לדשבורד.'); return; }
+  activeGame = {
+    id: 'game_' + Date.now(),
+    startedAt: new Date().toISOString(),
+    currentQuestion: 1,
+    correct: 0,
+    wrong: 0
+  };
+  saveActiveGame(activeGame);
+  showQuiz();
+}
+
+function resumeActiveIfAny() {
+  const stored = loadActiveGame();
+  if (stored && (stored.currentQuestion <= TOTAL_QUESTIONS)) {
+    activeGame = stored;
+    showQuiz();
+  } else {
+    // If no active game, start one automatically so the user sees the staff and a note immediately
+    startNewGame();
+  }
+}
+
+// ===== Event Listeners =====
+document.getElementById('checkBtn').addEventListener('click', () => {
+  const res = checkCurrentAnswer(); if (res === null) return; recordAndAdvance(res);
+});
+document.getElementById('nextBtn').addEventListener('click', () => {
+  const res = checkCurrentAnswer(); if (res === null) return; recordAndAdvance(res);
+});
+answerInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { const res = checkCurrentAnswer(); if (res === null) return; recordAndAdvance(res); }
+});
+
+// dashboard buttons
+const toDashboardBtn = document.getElementById('toDashboardBtn');
+if (toDashboardBtn) toDashboardBtn.addEventListener('click', () => { renderDashboard(); showDashboard(); });
+const backToActiveBtn = document.getElementById('backToActiveBtn');
+if (backToActiveBtn) backToActiveBtn.addEventListener('click', () => {
+  const stored = loadActiveGame();
+  if (stored) { activeGame = stored; showQuiz(); }
+  else { startNewGame(); }
+});
+const startNewBtn = document.getElementById('startNewBtn');
+if (startNewBtn) startNewBtn.addEventListener('click', startNewGame);
+
+// difficulty selector
+const difficultySelect = document.getElementById('difficultySelect');
+if (difficultySelect) {
+  difficultySelect.value = difficulty;
+  difficultySelect.addEventListener('change', (e) => setDifficulty(e.target.value));
+}
+
+// ===== Init =====
+renderDashboard();
+resumeActiveIfAny();
+</script>
+</body>
+</html>
