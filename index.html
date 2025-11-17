@@ -2,54 +2,71 @@
 <html lang="he">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
 <title>חידון תווים - משחקון של 50 + דשבורד</title>
 <style>
+  :root{ --card:#fff; --ink:#333; --accent:#004aad; --bg:#f0f8ff }
+  *{ box-sizing:border-box }
   body {
-    font-family: 'Arial', sans-serif;
-    background-color: #f8f9fa;
+    font-family: 'Comic Sans MS', 'Arial', sans-serif;
+    background-color: var(--bg);
     direction: rtl;
     display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-    align-items: flex-start;
-    margin: 20px;
+    gap: 12px;
+    flex-direction: column; /* stack so no horizontal scroll */
+    justify-content: flex-start;
+    align-items: center;
+    margin: 12px;
+    color: var(--ink);
   }
-  .quiz { text-align: center; flex: 1; }
+  .quiz { text-align: center; flex: 1; width: 100%; max-width: 620px; }
+  .btn-row{ display:flex; justify-content:center; gap:12px; flex-wrap:wrap }
   .stats {
-    width: 300px; background: #fff; border: 2px solid #333; border-radius: 10px;
-    padding: 15px; font-size: 16px; position: sticky; top: 20px;
+    width: 100%; max-width: 620px; background: var(--card); border: 2px solid var(--ink); border-radius: 12px;
+    padding: 10px; font-size: 15px; position: static; margin-top: 6px;
   }
-  canvas { border: 2px solid #333; background-color: white; margin: 20px auto; display: block; }
-  input[type=text] { padding: 10px; font-size: 18px; margin-top: 10px; width: 260px; }
-  button { padding: 10px 20px; font-size: 16px; margin: 10px; cursor: pointer; }
-  #feedback { font-weight: bold; margin-top: 10px; min-height: 24px; }
-  .correct { color: green; }
-  .wrong { color: red; }
-  .hidden { display: none; }
+  canvas { border: 2px solid var(--ink); background-color: white; margin: 8px auto; display: block; width: 100%; max-width: 340px; height: auto; }
+  input[type=text]{ padding: 12px; font-size: 18px; margin-top: 6px; width: min(90%, 360px); }
+  button{ padding: 12px 18px; font-size: 16px; margin: 8px; cursor: pointer; border-radius: 10px; border: 1px solid var(--ink); background:#fff }
+  #feedback{ font-weight: bold; margin-top: 8px; min-height: 24px; }
+  .correct{ color: green; } .wrong{ color: red; } .hidden{ display:none }
 
   /* Dashboard */
-  .dashboard {
-    max-width: 980px; margin: 0 auto; background: #fff; border: 2px solid #333; border-radius: 12px; padding: 16px;
+  .dashboard{ max-width: 980px; margin: 0 auto; background: var(--card); border: 3px solid var(--accent); border-radius: 16px; padding: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2) }
+  .dashboard h1{ font-size: 2rem; color: var(--accent); text-shadow: 2px 2px 3px #aad4ff; text-align: center; margin-bottom: 6px }
+  .dashboard h2{ text-align:center; color: var(--ink) }
+  table{ width:100%; border-collapse: collapse; margin-top: 10px }
+  th, td{ border:1px solid #ddd; padding:8px; text-align:center }
+  th{ background:#f0f0f0 }
+  .muted{ color:#666; font-size:14px; text-align:center }
+
+  /* ===== Mobile layout ===== */
+  @media (max-width: 768px){
+    body{ margin: 10px }
+    h2{ font-size: 1.2rem }
+    .stats{ width:100% }
+    button{ width: calc(50% - 12px) }
+    input[type=text]{ width:100% }
+    .dashboard{ padding:12px }
+    .dashboard h1{ font-size:1.6rem }
   }
-  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-  th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-  th { background: #f0f0f0; }
-  .muted { color: #666; font-size: 14px; }
 </style>
 </head>
 <body>
   <!-- QUIZ AREA -->
   <div id="quizArea" class="quiz">
     <h2>🎵 חידון זיהוי תווים במפתח סול 🎵</h2>
-    <div>
+    <div class="btn-row">
       <button id="toDashboardBtn">לדשבורד המשחקונים</button>
+      <button id="fullscreenBtn">מסך מלא</button>
+      <button id="zoomBtn">זום</button>
     </div>
-    <canvas id="staffCanvas" width="520" height="280"></canvas>
-    <p>מה שם התו שמופיע?</p>
-    <input type="text" id="answerInput" placeholder="הקלד כאן את שם התו..." />
-    <div>
-      <!-- "הבא" בודק וגם מתקדם -->
+    <canvas id="staffCanvas" aria-label="חמשה במפתח סול"></canvas>
+    <p class="muted" style="margin:4px 0 2px">מה שם התו שמופיע?</p>
+    <form id="answerForm" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="display:inline-block; width:100%; max-width:560px;">
+      <input type="text" id="answerInput" placeholder="הקלד כאן את שם התו..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="latin" />
+    </form>
+    <div class="btn-row">
       <button id="checkBtn">בדוק תשובה</button>
       <button id="nextBtn">הבא</button>
     </div>
@@ -75,8 +92,9 @@
   </div>
 
   <!-- DASHBOARD (all gamelets) -->
-  <div id="dashboardArea" class="dashboard hidden">
-    <h2>דשבורד משחקונים</h2>
+  <div id="dashboardArea" class="dashboard hidden" aria-live="polite">
+    <h1>🎶 חידון זיהוי תווים במפתח סול 🎶</h1>
+    <h2>דשבורד המשחקונים</h2>
     <p class="muted">כל שורה מייצגת משחקון של 50 שאלות שהושלם. הכותרת היא ה־Date & Time של סיום המשחקון.</p>
     <table>
       <thead>
@@ -89,364 +107,274 @@
       </thead>
       <tbody id="dashboardTableBody"></tbody>
     </table>
-    <div style="text-align:center; margin-top: 12px;">
+    <div style="text-align:right; font-size:12px; color:#777; margin-top:10px;">גרסה 0.2</div>
+    <div style="text-align:center; margin-top: 12px;" class="btn-row">
       <button id="backToActiveBtn">חזרה למשחקון הפעיל</button>
       <button id="startNewBtn">התחל משחקון חדש</button>
     </div>
   </div>
 
-  <script>
-    // ===== Persistence helpers (localStorage) =====
-    const STORAGE_KEYS = {
-      ACTIVE: 'noteQuiz_activeGame',
-      HISTORY: 'noteQuiz_history'
-    };
+<script>
+// ===== Environment detection & helpers =====
+const isMobile = /Mobi|Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent) || window.matchMedia('(max-width: 768px)').matches;
+document.documentElement.classList.toggle('mobile', isMobile);
 
-    function saveActiveGame(state) {
-      localStorage.setItem(STORAGE_KEYS.ACTIVE, JSON.stringify(state));
-    }
-    function loadActiveGame() {
-      const raw = localStorage.getItem(STORAGE_KEYS.ACTIVE);
-      return raw ? JSON.parse(raw) : null;
-    }
-    function clearActiveGame() { localStorage.removeItem(STORAGE_KEYS.ACTIVE); }
+// ===== Persistence helpers (localStorage) =====
+const STORAGE_KEYS = { ACTIVE: 'noteQuiz_activeGame', HISTORY: 'noteQuiz_history', DIFFICULTY: 'noteQuiz_difficulty' };
+const saveActiveGame = s => localStorage.setItem(STORAGE_KEYS.ACTIVE, JSON.stringify(s));
+const loadActiveGame = () => { const r = localStorage.getItem(STORAGE_KEYS.ACTIVE); return r ? JSON.parse(r) : null };
+const clearActiveGame = () => localStorage.removeItem(STORAGE_KEYS.ACTIVE);
+const saveHistory = a => localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(a));
+const loadHistory = () => { const r = localStorage.getItem(STORAGE_KEYS.HISTORY); return r ? JSON.parse(r) : [] };
 
-    function saveHistory(arr) { localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(arr)); }
-    function loadHistory() {
-      const raw = localStorage.getItem(STORAGE_KEYS.HISTORY);
-      return raw ? JSON.parse(raw) : [];
-    }
+// ===== Canvas Reflow & Geometry =====
+const canvas = document.getElementById('staffCanvas');
+const ctx = canvas.getContext('2d');
+let DPR = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+let CW = 560; // logical CSS width
+let CH = isMobile ? 240 : 300; // logical CSS height
+let left, right, topLineY, bottomLineY, lineGap;
 
-    // ===== Canvas + Staff Geometry =====
-    const canvas = document.getElementById('staffCanvas');
-    const ctx = canvas.getContext('2d');
-    const left = 50, right = 450;
-    const topLineY = 80;      // line 5 (top) — shifted for more headroom      // line 5 (top)
-    const lineGap = 20;       // distance between staff lines
-    const bottomLineY = topLineY + 4 * lineGap; // line 1 (bottom) = 140
+function sizeCanvas() {
+  // set CSS size first
+  canvas.style.width = '100%';
+  // Ensure we always get a sane width (in some environments width can be 0 on first paint)
+  const rect = canvas.getBoundingClientRect();
+  const widthCandidate = rect && rect.width ? rect.width : 340;
+  const cssWidth = Math.min(340, widthCandidate);
+  const cssHeight = Math.round(cssWidth * 0.5);
+  // set backing store size (crisp on HiDPI)
+  DPR = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+  canvas.width = Math.floor(cssWidth * DPR);
+  canvas.height = Math.floor(cssHeight * DPR);
+  canvas.style.height = cssHeight + 'px';
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-    // Notes on treble clef — extended 4 up / 4 down with correct Hebrew names
-    // Inside staff: E4..F5 | Above: G5 A5 B5 C6 | Below: D4 C4 B3 A3
-    const fullNoteMap = [
-      // ==== BELOW STAFF (down to D3 for ±4) ====
-      { name: 'רה', y: (topLineY + 4*lineGap) + 10 },  // D4 (space below staff)
-      { name: 'דו', y: (topLineY + 4*lineGap) + 20 },  // C4 (ledger 1)
-      { name: 'סי', y: (topLineY + 4*lineGap) + 30 },  // B3 (space)
-      { name: 'לה', y: (topLineY + 4*lineGap) + 40 },  // A3 (ledger 2)
-      { name: 'סול', y: (topLineY + 4*lineGap) + 50 }, // G3 (space)
-      { name: 'פה', y: (topLineY + 4*lineGap) + 60 },  // F3 (ledger 3)
-      { name: 'מי', y: (topLineY + 4*lineGap) + 70 },  // E3 (space)
-      { name: 'רה', y: (topLineY + 4*lineGap) + 80 },  // D3 (ledger 4)
+  // recompute geometry relative to size
+  CW = cssWidth; CH = cssHeight;
+  lineGap = Math.min(Math.max(CH * 0.10, 14), 26); // 14–26px depending on height
+  const staffMidY = Math.round(CH * 0.5);
+  topLineY = Math.round(staffMidY - 2 * lineGap);
+  bottomLineY = Math.round(topLineY + 4 * lineGap);
+  left = Math.round(CW * 0.12); right = Math.round(CW * 0.88);
+}
 
-      // ==== WITHIN STAFF (E4..F5) ====
-      { name: 'מי', y: (topLineY + 4*lineGap) },       // E4 line 1
-      { name: 'פה', y: (topLineY + 4*lineGap) - 10 },  // F4 space 1
-      { name: 'סול', y: (topLineY + 4*lineGap) - 20 }, // G4 line 2
-      { name: 'לה', y: (topLineY + 4*lineGap) - 30 },  // A4 space 2
-      { name: 'סי', y: (topLineY + 4*lineGap) - 40 },  // B4 line 3
-      { name: 'דו', y: (topLineY + 4*lineGap) - 50 },  // C5 space 3
-      { name: 'רה', y: (topLineY + 4*lineGap) - 60 },  // D5 line 4
-      { name: 'מי', y: (topLineY + 4*lineGap) - 70 },  // E5 space 4
-      { name: 'פה', y: (topLineY + 4*lineGap) - 80 },  // F5 line 5
+// Build full note map based on current geometry
+function getFullNoteMap(){
+  return [
+    // BELOW staff down to 4 ledger lines
+    { name: 'רה', y: bottomLineY + 10 },
+    { name: 'דו', y: bottomLineY + 20 },
+    { name: 'סי', y: bottomLineY + 30 },
+    { name: 'לה', y: bottomLineY + 40 },
+    { name: 'סול', y: bottomLineY + 50 },
+    { name: 'פה', y: bottomLineY + 60 },
+    { name: 'מי', y: bottomLineY + 70 },
+    { name: 'רה', y: bottomLineY + 80 },
+    // WITHIN staff (E4..F5)
+    { name: 'מי', y: bottomLineY },
+    { name: 'פה', y: bottomLineY - 10 },
+    { name: 'סול', y: bottomLineY - 20 },
+    { name: 'לה', y: bottomLineY - 30 },
+    { name: 'סי', y: bottomLineY - 40 },
+    { name: 'דו', y: bottomLineY - 50 },
+    { name: 'רה', y: bottomLineY - 60 },
+    { name: 'מי', y: bottomLineY - 70 },
+    { name: 'פה', y: bottomLineY - 80 },
+    // ABOVE staff up to 4 ledger lines
+    { name: 'סול', y: topLineY - 10 },
+    { name: 'לה', y: topLineY - 20 },
+    { name: 'סי', y: topLineY - 30 },
+    { name: 'דו', y: topLineY - 40 },
+    { name: 'רה', y: topLineY - 50 },
+    { name: 'מי', y: topLineY - 60 },
+    { name: 'פה', y: topLineY - 70 },
+    { name: 'סול', y: topLineY - 80 }
+  ];
+}
 
-      // ==== ABOVE STAFF (up to G6 for ±4) ====
-      { name: 'סול', y: topLineY - 10 },    // G5 (space)
-      { name: 'לה', y: topLineY - 20 },     // A5 (ledger 1)
-      { name: 'סי', y: topLineY - 30 },     // B5 (space)
-      { name: 'דו', y: topLineY - 40 },     // C6 (ledger 2)
-      { name: 'רה', y: topLineY - 50 },     // D6 (space)
-      { name: 'מי', y: topLineY - 60 },     // E6 (ledger 3)
-      { name: 'פה', y: topLineY - 70 },     // F6 (space)
-      { name: 'סול', y: topLineY - 80 }     // G6 (ledger 4)
-    ];
+// ===== Difficulty =====
+const DIFFICULTY = { STAFF_ONLY:'staff', PLUS_2:'plus2', PLUS_4:'plus4' };
+let difficulty = localStorage.getItem('noteQuiz_difficulty') || DIFFICULTY.PLUS_2;
+function setDifficulty(newLevel){ difficulty=newLevel; localStorage.setItem('noteQuiz_difficulty', difficulty); pickAndDraw(); }
+function filteredNotesByDifficulty(){
+  const map = getFullNoteMap();
+  let minY, maxY;
+  if (difficulty===DIFFICULTY.STAFF_ONLY){ minY=topLineY; maxY=bottomLineY; }
+  else if (difficulty===DIFFICULTY.PLUS_2){ minY=topLineY-40; maxY=bottomLineY+40; }
+  else { minY=topLineY-80; maxY=bottomLineY+80; }
+  return map.filter(n=> n.y>=minY && n.y<=maxY);
+}
 
-    // ===== Difficulty =====
-    const DIFFICULTY = {
-      STAFF_ONLY: 'staff',       // בתוך החמשה
-      PLUS_2: 'plus2',           // חמשה + 2 קווי עזר
-      PLUS_4: 'plus4'            // חמשה + 4 קווי עזר
-    };
-    let difficulty = localStorage.getItem('noteQuiz_difficulty') || DIFFICULTY.PLUS_2;
+// ===== Game State =====
+let activeGame = null; // {id, startedAt, currentQuestion, correct, wrong}
+let history = loadHistory();
+let currentNote; const TOTAL_QUESTIONS = 50;
 
-    function setDifficulty(newLevel) {
-      difficulty = newLevel;
-      localStorage.setItem('noteQuiz_difficulty', difficulty);
-      // Refresh current pool and redraw
-      pickAndDraw();
-    }
+// ===== UI Refs =====
+const feedback = document.getElementById('feedback');
+const answerInput = document.getElementById('answerInput');
+const answerForm = document.getElementById('answerForm');
+if (answerForm) answerForm.addEventListener('submit', (e)=> e.preventDefault());
+if (answerInput){
+  answerInput.setAttribute('name', 'ans_'+Date.now());
+  answerInput.setAttribute('autocomplete','off');
+  answerInput.setAttribute('autocorrect','off');
+  answerInput.setAttribute('autocapitalize','off');
+  answerInput.setAttribute('spellcheck','false');
+}
+const qCount = document.getElementById('questionCount');
+const correctCount = document.getElementById('correctCount');
+const wrongCount = document.getElementById('wrongCount');
+const percentSpan = document.getElementById('percent');
+const quizArea = document.getElementById('quizArea');
+const statsPanel = document.getElementById('statsPanel');
+const dashboardArea = document.getElementById('dashboardArea');
+const dashboardTableBody = document.getElementById('dashboardTableBody');
 
-    function filteredNotesByDifficulty() {
-      const bottomLineY = topLineY + 4*lineGap;
-      let minY, maxY;
-      if (difficulty === DIFFICULTY.STAFF_ONLY) {
-        minY = topLineY;               // top line
-        maxY = bottomLineY;            // bottom line
-      } else if (difficulty === DIFFICULTY.PLUS_2) {
-        minY = topLineY - 40;          // up to ledger 2 above
-        maxY = bottomLineY + 40;       // down to ledger 2 below
-      } else { // PLUS_4
-        minY = topLineY - 80;          // up to ledger 4 above
-        maxY = bottomLineY + 80;       // down to ledger 4 below
-      }
-      return fullNoteMap.filter(n => n.y >= minY && n.y <= maxY);
-    }
+// ===== Utilities =====
+const formatDT = (iso)=>{ try{ return new Date(iso).toLocaleString('he-IL',{hour12:false}); }catch(e){ return iso } };
+const calcPercent = (c,w)=>{ const t=c+w; return t? Math.round((c/t)*100):0 };
 
-    // ===== Game State =====
-    let activeGame = null; // {id, startedAt, currentQuestion, correct, wrong}
-    let history = loadHistory(); // [{id, finishedAt, correct, wrong, percent, title}]
-    let currentNote;
-    const TOTAL_QUESTIONS = 50;
+// ===== Drawing =====
+function drawStaff(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.lineWidth = 1.5;
+  for (let i=0;i<5;i++){
+    const y = topLineY + i*lineGap;
+    ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(right, y); ctx.stroke();
+  }
+  ctx.font = Math.round(lineGap*2) + 'px serif';
+  ctx.fillText('𝄞', left - lineGap*0.8, topLineY + lineGap*2.7);
+}
+function drawLedgerLines(y){
+  const cx=(left+right)/2, half=Math.max(18, lineGap*1.1);
+  for (let ly=topLineY-20; ly>=y; ly-=20){ if (ly<topLineY && Math.abs(ly-y)<=10){ ctx.beginPath(); ctx.moveTo(cx-half,ly); ctx.lineTo(cx+half,ly); ctx.stroke(); } }
+  for (let ly=bottomLineY+20; ly<=y; ly+=20){ if (ly>bottomLineY && Math.abs(ly-y)<=10){ ctx.beginPath(); ctx.moveTo(cx-half,ly); ctx.lineTo(cx+half,ly); ctx.stroke(); } }
+}
+function drawNote(note){
+  drawStaff();
+  if (note.y < topLineY || note.y > bottomLineY) drawLedgerLines(note.y);
+  const cx=(left+right)/2;
+  ctx.beginPath(); ctx.ellipse(cx, note.y, lineGap*0.6, lineGap*0.45, -0.35, 0, Math.PI*2); ctx.fillStyle='#000'; ctx.fill();
+  const mid = topLineY + 2*lineGap;
+  if (note.y > mid){ ctx.beginPath(); ctx.moveTo(cx+lineGap*0.5, note.y); ctx.lineTo(cx+lineGap*0.5, note.y - lineGap*1.8); ctx.stroke(); }
+  else { ctx.beginPath(); ctx.moveTo(cx-lineGap*0.5, note.y); ctx.lineTo(cx-lineGap*0.5, note.y + lineGap*1.8); ctx.stroke(); }
+}
 
-    // ===== UI Refs =====
-    const feedback = document.getElementById('feedback');
-    const answerInput = document.getElementById('answerInput');
-    const qCount = document.getElementById('questionCount');
-    const correctCount = document.getElementById('correctCount');
-    const wrongCount = document.getElementById('wrongCount');
-    const percentSpan = document.getElementById('percent');
-    const quizArea = document.getElementById('quizArea');
-    const statsPanel = document.getElementById('statsPanel');
-    const dashboardArea = document.getElementById('dashboardArea');
-    const dashboardTableBody = document.getElementById('dashboardTableBody');
+function randomNote(){ const pool = filteredNotesByDifficulty(); return pool[Math.floor(Math.random()*pool.length)] }
+function pickAndDraw(){ currentNote = randomNote(); drawNote(currentNote); if(activeGame){ qCount.textContent=activeGame.currentQuestion; correctCount.textContent=activeGame.correct; wrongCount.textContent=activeGame.wrong; percentSpan.textContent=calcPercent(activeGame.correct, activeGame.wrong)+'%'; } feedback.textContent=''; answerInput.value=''; answerInput.focus(); }
 
-    // ===== Utilities =====
-    function formatDT(iso) {
-      try { return new Date(iso).toLocaleString('he-IL', { hour12: false }); }
-      catch(e){ return iso; }
-    }
-    function calcPercent(c, w) {
-      const total = c + w; return total === 0 ? 0 : Math.round((c / total) * 100);
-    }
-
-    // ===== Drawing =====
-    function drawStaff() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.lineWidth = 1.5;
-      for (let i = 0; i < 5; i++) {
-        const y = topLineY + i * lineGap;
-        ctx.beginPath();
-        ctx.moveTo(left, y);
-        ctx.lineTo(right, y);
-        ctx.stroke();
-      }
-      // Treble clef
-      ctx.font = '40px serif';
-      ctx.fillText('𝄞', left + 5, topLineY + 55);
-    }
-
-    function drawLedgerLines(y) {
-      // Draw short ledger lines for notes above/below the staff where needed (only on line positions)
-      const half = 22; // half length of small ledger line
-      // Above staff: line positions every 20px starting from topLineY - 20, -40, ...
-      for (let ly = topLineY - 20; ly >= y; ly -= 20) {
-        if (Math.abs(ly - y) <= 10 || ly < topLineY) {
-          ctx.beginPath();
-          ctx.moveTo((left + right)/2 - half, ly);
-          ctx.lineTo((left + right)/2 + half, ly);
-          ctx.stroke();
-        }
-      }
-      // Below staff: line positions every 20px starting from bottomLineY + 20, +40, ...
-      for (let ly = bottomLineY + 20; ly <= y; ly += 20) {
-        if (Math.abs(ly - y) <= 10 || ly > bottomLineY) {
-          ctx.beginPath();
-          ctx.moveTo((left + right)/2 - half, ly);
-          ctx.lineTo((left + right)/2 + half, ly);
-          ctx.stroke();
-        }
-      }
-    }
-
-    function drawNote(note) {
-      drawStaff();
-      // Ledger lines first if needed
-      if (note.y < topLineY || note.y > bottomLineY) {
-        drawLedgerLines(note.y);
-      }
-      // Notehead
-      ctx.beginPath();
-      ctx.ellipse((left + right) / 2, note.y, 12, 8, -0.35, 0, Math.PI * 2);
-      ctx.fillStyle = 'black';
-      ctx.fill();
-      // Stem (direction based on middle line (y=100))
-      const middleLineY = topLineY + 2 * lineGap;
-      if (note.y > middleLineY) {
-        // stem up
-        ctx.beginPath();
-        ctx.moveTo((left + right) / 2 + 10, note.y);
-        ctx.lineTo((left + right) / 2 + 10, note.y - 35);
-        ctx.stroke();
-      } else {
-        // stem down
-        ctx.beginPath();
-        ctx.moveTo((left + right) / 2 - 10, note.y);
-        ctx.lineTo((left + right) / 2 - 10, note.y + 35);
-        ctx.stroke();
-      }
-    }
-
-    function randomNote() { 
-      const pool = filteredNotesByDifficulty();
-      return pool[Math.floor(Math.random() * pool.length)];
-    }
-
-    function pickAndDraw() {
-      currentNote = randomNote();
-      drawNote(currentNote);
-      qCount.textContent = activeGame.currentQuestion;
-      correctCount.textContent = activeGame.correct;
-      wrongCount.textContent = activeGame.wrong;
-      percentSpan.textContent = calcPercent(activeGame.correct, activeGame.wrong) + '%';
-      answerInput.value = '';
-      feedback.textContent = '';
-      answerInput.focus();
-    }
-
-    // ===== Answer Handling =====
-    function normalizeAnswer(str) {
-      const s = (str || '').trim().toLowerCase();
-      const map = {
-        'דו': 'דו', 'do': 'דו',
-        'רה': 'רה', 're': 'רה',
-        'מי': 'מי', 'mi': 'מי',
-        'פה': 'פה', 'fa': 'פה',
-        'סול': 'סול', 'sol': 'סול',
-        'לה': 'לה', 'la': 'לה',
-        'סי': 'סי', 'si': 'סי', 'ti': 'סי'
-      };
-      return map[s] || s;
-    }
-
-    function recordAndAdvance(isCorrect) {
-      if (isCorrect) {
-        activeGame.correct++; feedback.textContent = 'נכון מאוד! 🎉'; feedback.style.color = 'green';
-      } else {
-        activeGame.wrong++; feedback.textContent = `לא נכון. התשובה היא ${currentNote.name}.`; feedback.style.color = 'red';
-      }
-
-      // advance question counter or finish
-      if (activeGame.currentQuestion < TOTAL_QUESTIONS) {
-        activeGame.currentQuestion++;
-        saveActiveGame(activeGame);
-        // update side stats & move on
-        correctCount.textContent = activeGame.correct;
-        wrongCount.textContent = activeGame.wrong;
-        percentSpan.textContent = calcPercent(activeGame.correct, activeGame.wrong) + '%';
-        setTimeout(pickAndDraw, 300);
-      } else {
-        // Finish gamelet
-        const finishedAt = new Date().toISOString();
-        const percent = calcPercent(activeGame.correct, activeGame.wrong);
-        const title = formatDT(finishedAt);
-        history.push({ id: activeGame.id, finishedAt, correct: activeGame.correct, wrong: activeGame.wrong, percent, title });
-        saveHistory(history);
-        clearActiveGame();
-        activeGame = null;
-        renderDashboard();
-        showDashboard();
-      }
-    }
-
-    function checkCurrentAnswer() {
-      const userAnswer = normalizeAnswer(answerInput.value);
-      if (!userAnswer) { feedback.textContent = 'אנא כתוב תשובה.'; feedback.style.color = 'black'; return null; }
-      return userAnswer === currentNote.name; // true/false
-    }
-
-    // ===== Dashboard =====
-    function renderDashboard() {
-      dashboardTableBody.innerHTML = '';
-      if (!history.length) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td colspan="4" class="muted">אין עדיין משחקונים שהושלמו</td>`;
-        dashboardTableBody.appendChild(tr);
-        return;
-      }
-      // newest first
-      const rows = [...history].sort((a,b) => new Date(b.finishedAt) - new Date(a.finishedAt));
-      rows.forEach(g => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${g.title}</td>
-          <td class="correct">${g.correct}</td>
-          <td class="wrong">${g.wrong}</td>
-          <td>${g.percent}%</td>
-        `;
-        dashboardTableBody.appendChild(tr);
-      });
-    }
-
-    function showDashboard() {
-      quizArea.classList.add('hidden');
-      statsPanel.classList.add('hidden');
-      dashboardArea.classList.remove('hidden');
-    }
-    function showQuiz() {
-      dashboardArea.classList.add('hidden');
-      quizArea.classList.remove('hidden');
-      statsPanel.classList.remove('hidden');
-      if (activeGame) pickAndDraw();
-    }
-
-    // ===== Start / Resume game =====
-    function startNewGame() {
-      if (activeGame) { alert('כבר יש משחקון פעיל. סיים אותו או עבור לדשבורד.'); return; }
-      activeGame = {
-        id: 'game_' + Date.now(),
-        startedAt: new Date().toISOString(),
-        currentQuestion: 1,
-        correct: 0,
-        wrong: 0
-      };
-      saveActiveGame(activeGame);
-      showQuiz();
-      pickAndDraw();
-    }
-
-    function resumeActiveIfAny() {
-      const stored = loadActiveGame();
-      if (stored && (stored.currentQuestion <= TOTAL_QUESTIONS)) {
-        activeGame = stored;
-        showQuiz();
-        pickAndDraw();
-      } else {
-        // no active game — go to dashboard by default
-        renderDashboard();
-        showDashboard();
-      }
-    }
-
-    // ===== Event Listeners =====
-    document.getElementById('checkBtn').addEventListener('click', () => {
-      const res = checkCurrentAnswer(); if (res === null) return; recordAndAdvance(res);
-    });
-    document.getElementById('nextBtn').addEventListener('click', () => {
-      const res = checkCurrentAnswer(); if (res === null) return; recordAndAdvance(res);
-    });
-    answerInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { const res = checkCurrentAnswer(); if (res === null) return; recordAndAdvance(res); }
-    });
-
-    document.getElementById('toDashboardBtn').addEventListener('click', () => {
-      renderDashboard(); showDashboard();
-    });
-    document.getElementById('backToActiveBtn').addEventListener('click', () => {
-      const stored = loadActiveGame();
-      if (stored) { activeGame = stored; showQuiz(); }
-      else {
-        alert('אין משחקון פעיל כרגע. התחלת חדש?');
-      }
-    });
-    document.getElementById('startNewBtn').addEventListener('click', startNewGame);
-
-    // ===== Init =====
-    // Initialize difficulty select UI
-    const difficultySelect = document.getElementById('difficultySelect');
-    difficultySelect.value = difficulty;
-    difficultySelect.addEventListener('change', (e) => setDifficulty(e.target.value));
-
+// ===== Answer Handling =====
+function normalizeAnswer(str){ const s=(str||'').trim().toLowerCase(); const map={ 'דו':'דו','do':'דו','רה':'רה','re':'רה','מי':'מי','mi':'מי','פה':'פה','fa':'פה','סול':'סול','sol':'סול','לה':'לה','la':'לה','סי':'סי','si':'סי','ti':'סי' }; return map[s]||s }
+function recordAndAdvance(ok){
+  if(!activeGame) return;
+  // Haptics
+  if (navigator.vibrate) { navigator.vibrate(ok ? 30 : [20,50,20]); }
+  // Visual feedback (1.5s)
+  if(ok){
+    activeGame.correct++;
+    feedback.textContent='נכון מאוד! 🎉';
+    feedback.style.color='green';
+    feedback.classList.add('correct');
+    feedback.classList.remove('wrong');
+  } else {
+    activeGame.wrong++;
+    feedback.textContent=`לא נכון. התשובה היא ${currentNote.name}.`;
+    feedback.style.color='red';
+    feedback.classList.add('wrong');
+    feedback.classList.remove('correct');
+  }
+  if(activeGame.currentQuestion < 50){
+    activeGame.currentQuestion++;
+    saveActiveGame(activeGame);
+    correctCount.textContent=activeGame.correct;
+    wrongCount.textContent=activeGame.wrong;
+    percentSpan.textContent=calcPercent(activeGame.correct, activeGame.wrong)+'%';
+    setTimeout(pickAndDraw, 1500);
+  } else {
+    const finishedAt=new Date().toISOString();
+    const percent=calcPercent(activeGame.correct, activeGame.wrong);
+    const title=formatDT(finishedAt);
+    const historyArr=history||[];
+    historyArr.push({id:activeGame.id, finishedAt, correct:activeGame.correct, wrong:activeGame.wrong, percent, title});
+    history=historyArr;
+    saveHistory(history);
+    clearActiveGame();
+    activeGame=null;
     renderDashboard();
-    resumeActiveIfAny();
-  </script>
+    showDashboard();
+  }
+}
+function checkCurrentAnswer(){ const ans=normalizeAnswer(answerInput.value); if(!ans){ feedback.textContent='אנא כתוב תשובה.'; feedback.style.color='black'; return null } return ans===currentNote.name }
+
+// ===== Dashboard =====
+function renderDashboard(){ dashboardTableBody.innerHTML=''; if(!history.length){ const tr=document.createElement('tr'); tr.innerHTML = `<td colspan="4" class="muted">אין עדיין משחקונים שהושלמו</td>`; dashboardTableBody.appendChild(tr); return } const rows=[...history].sort((a,b)=> new Date(b.finishedAt)-new Date(a.finishedAt)); rows.forEach(g=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${g.title}</td><td class="correct">${g.correct}</td><td class="wrong">${g.wrong}</td><td>${g.percent}%</td>`; dashboardTableBody.appendChild(tr) }) }
+function showDashboard(){ quizArea.classList.add('hidden'); statsPanel.classList.add('hidden'); dashboardArea.classList.remove('hidden') }
+function showQuiz(){ dashboardArea.classList.add('hidden'); quizArea.classList.remove('hidden'); statsPanel.classList.remove('hidden'); pickAndDraw() }
+
+// ===== Start / Resume game =====
+function startNewGame(){ if(activeGame){ alert('כבר יש משחקון פעיל. סיים אותו או עבור לדשבורד.'); return } activeGame={ id:'game_'+Date.now(), startedAt:new Date().toISOString(), currentQuestion:1, correct:0, wrong:0 }; saveActiveGame(activeGame); showQuiz() }
+function resumeActiveIfAny(){ const stored=loadActiveGame(); if(stored && (stored.currentQuestion<=50)){ activeGame=stored; showQuiz() } else { startNewGame() } }
+
+// ===== Listeners =====
+document.getElementById('checkBtn').addEventListener('click', ()=>{ const r=checkCurrentAnswer(); if(r===null) return; recordAndAdvance(r) });
+document.getElementById('nextBtn').addEventListener('click', ()=>{ const r=checkCurrentAnswer(); if(r===null) return; recordAndAdvance(r) });
+answerInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ const r=checkCurrentAnswer(); if(r===null) return; recordAndAdvance(r) } });
+
+const toDashboardBtn=document.getElementById('toDashboardBtn'); if(toDashboardBtn) toDashboardBtn.addEventListener('click', ()=>{ renderDashboard(); showDashboard() });
+const backToActiveBtn=document.getElementById('backToActiveBtn'); if(backToActiveBtn) backToActiveBtn.addEventListener('click', ()=>{ const stored=loadActiveGame(); if(stored){ activeGame=stored; showQuiz() } else { startNewGame() } });
+const startNewBtn=document.getElementById('startNewBtn'); if(startNewBtn) startNewBtn.addEventListener('click', startNewGame);
+
+const difficultySelect=document.getElementById('difficultySelect'); if(difficultySelect){ difficultySelect.value=difficulty; difficultySelect.addEventListener('change', e=> setDifficulty(e.target.value)) }
+
+// Fullscreen support (mobile-first with fallback)
+const fsBtn = document.getElementById('fullscreenBtn');
+function enterPseudoFullscreen(){ document.body.style.position='fixed'; document.body.style.inset='0'; document.body.style.overflow='hidden'; window.scrollTo(0,0); sizeCanvas(); pickAndDraw(); }
+function exitPseudoFullscreen(){ document.body.style.position=''; document.body.style.inset=''; document.body.style.overflow=''; sizeCanvas(); pickAndDraw(); }
+async function toggleFullscreen(){
+  try{
+    if(!document.fullscreenElement){
+      if(document.documentElement.requestFullscreen){ await document.documentElement.requestFullscreen(); }
+      else { enterPseudoFullscreen(); }
+    } else {
+      if(document.exitFullscreen){ await document.exitFullscreen(); }
+      else { exitPseudoFullscreen(); }
+    }
+  }catch(e){ if(document.body.style.position==='fixed') exitPseudoFullscreen(); else enterPseudoFullscreen(); }
+}
+if (fsBtn) fsBtn.addEventListener('click', toggleFullscreen);
+document.addEventListener('fullscreenchange', ()=>{ sizeCanvas(); pickAndDraw(); });
+
+// Zoom toggle
+const zoomBtn = document.getElementById('zoomBtn');
+let zoomed = false;
+function toggleZoom(){ zoomed = !zoomed; const scale = zoomed ? 1.5 : 1; canvas.style.transform = `scale(${scale})`; canvas.style.transformOrigin = 'center'; }
+if (zoomBtn) zoomBtn.addEventListener('click', toggleZoom);
+canvas.addEventListener('dblclick', toggleZoom);
+
+// ===== Simple runtime tests (console) =====
+(function selfTests(){
+  try {
+    console.group('%cSelf tests','color: #004aad');
+    sizeCanvas();
+    const poolStaff = (function(){ const d=difficulty; difficulty=DIFFICULTY.STAFF_ONLY; const p=filteredNotesByDifficulty(); difficulty=d; return p; })();
+    console.assert(Array.isArray(poolStaff) && poolStaff.length > 0, 'Pool (staff only) should not be empty');
+    const poolPlus2 = (function(){ const d=difficulty; difficulty=DIFFICULTY.PLUS_2; const p=filteredNotesByDifficulty(); difficulty=d; return p; })();
+    console.assert(poolPlus2.length >= poolStaff.length, 'Plus2 pool should be >= staff');
+    const poolPlus4 = (function(){ const d=difficulty; difficulty=DIFFICULTY.PLUS_4; const p=filteredNotesByDifficulty(); difficulty=d; return p; })();
+    console.assert(poolPlus4.length >= poolPlus2.length, 'Plus4 pool should be >= plus2');
+    console.assert(typeof randomNote()==='object', 'randomNote returns an object');
+    console.assert(typeof drawStaff === 'function' && typeof drawNote === 'function', 'draw functions exist');
+    console.log('✅ Self tests passed');
+    console.groupEnd();
+  } catch(err){ console.error('Self tests failed:', err); }
+})();
+
+// ===== Init =====
+function init(){ sizeCanvas(); renderDashboard(); resumeActiveIfAny(); }
+window.addEventListener('resize', ()=>{ const wasDash = !dashboardArea.classList.contains('hidden'); sizeCanvas(); if(!wasDash) pickAndDraw() });
+init();
+</script>
 </body>
 </html>
