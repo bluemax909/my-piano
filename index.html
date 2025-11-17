@@ -21,6 +21,11 @@
   }
   .quiz { text-align: center; flex: 1; width: 100%; max-width: 620px; }
   .btn-row{ display:flex; justify-content:center; gap:12px; flex-wrap:wrap }
+  .controls-row{ display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:nowrap; margin-top:6px }
+  .icon-btn{ border:1px solid var(--ink); background:#fff; border-radius:10px; padding:8px 10px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; line-height:1 }
+  .icon-btn svg{ width:22px; height:22px }
+  #difficultySelect{ font-size:18px; padding:6px 10px }
+  label[for="difficultySelect"]{ font-size:18px }
   .stats {
     width: 100%; max-width: 620px; background: var(--card); border: 2px solid var(--ink); border-radius: 12px;
     padding: 10px; font-size: 15px; position: static; margin-top: 6px;
@@ -42,13 +47,18 @@
 
   /* ===== Mobile layout ===== */
   @media (max-width: 768px){
-    body{ margin: 10px }
-    h2{ font-size: 1.2rem }
-    .stats{ width:100% }
-    button{ width: calc(50% - 12px) }
-    input[type=text]{ width:100% }
-    .dashboard{ padding:12px }
-    .dashboard h1{ font-size:1.6rem }
+    body{ margin: 8px }
+    h2{ font-size: 1.1rem; margin-bottom:6px }
+    .stats{ width:100%; font-size:14px }
+    button{ width:auto }
+    input[type=text]{ width:100%; font-size:17px }
+    .dashboard{ padding:10px }
+    .dashboard h1{ font-size:1.4rem }
+    /* Compact mobile control bar so no vertical scroll */
+    .controls-row{ gap:8px; margin-top:6px }
+    .icon-btn svg{ width:24px; height:24px }
+    #difficultySelect{ font-size:20px }
+    label[for="difficultySelect"]{ font-size:20px }
   }
 </style>
 </head>
@@ -57,9 +67,8 @@
   <div id="quizArea" class="quiz">
     <h2>🎵 חידון זיהוי תווים במפתח סול 🎵</h2>
     <div class="btn-row">
-      <button id="toDashboardBtn">לדשבורד המשחקונים</button>
-      <button id="fullscreenBtn">מסך מלא</button>
-      <button id="zoomBtn">זום</button>
+      <!-- Fullscreen shown only on mobile via JS -->
+      <button id="fullscreenBtn" class="hidden">מסך מלא</button>
     </div>
     <canvas id="staffCanvas" aria-label="חמשה במפתח סול"></canvas>
     <p class="muted" style="margin:4px 0 2px">מה שם התו שמופיע?</p>
@@ -70,13 +79,30 @@
       <button id="checkBtn">בדוק תשובה</button>
       <button id="nextBtn">הבא</button>
     </div>
-    <div style="margin-top:6px;">
+    <div class="controls-row">
       <label for="difficultySelect" class="muted">רמת קושי:</label>
       <select id="difficultySelect">
         <option value="staff">בתוך החמשה</option>
         <option value="plus2">חמשה + 2 קווי עזר</option>
         <option value="plus4">חמשה + 4 קווי עזר</option>
       </select>
+      <!-- Icons row: dashboard & zoom (mobile-friendly) -->
+      <button id="toDashboardIcon" class="icon-btn" title="לדשבורד המשחקונים" aria-label="לדשבורד המשחקונים">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+      </button>
+      <button id="zoomIcon" class="icon-btn" title="זום" aria-label="זום">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          <line x1="11" y1="8" x2="11" y2="14"></line>
+          <line x1="8" y1="11" x2="14" y2="11"></line>
+        </svg>
+      </button>
     </div>
     <div id="feedback"></div>
   </div>
@@ -107,7 +133,7 @@
       </thead>
       <tbody id="dashboardTableBody"></tbody>
     </table>
-    <div style="text-align:right; font-size:12px; color:#777; margin-top:10px;">גרסה 0.2</div>
+    <div style="text-align:right; font-size:12px; color:#777; margin-top:10px;">גרסה 0.3</div>
     <div style="text-align:center; margin-top: 12px;" class="btn-row">
       <button id="backToActiveBtn">חזרה למשחקון הפעיל</button>
       <button id="startNewBtn">התחל משחקון חדש</button>
@@ -116,8 +142,11 @@
 
 <script>
 // ===== Environment detection & helpers =====
-const isMobile = /Mobi|Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent) || window.matchMedia('(max-width: 768px)').matches;
+const isMobile = /(Mobi|Android|iPhone|iPad|iPod|webOS)/i.test(navigator.userAgent) || window.matchMedia('(max-width: 768px)').matches;
 document.documentElement.classList.toggle('mobile', isMobile);
+// Show fullscreen button only on mobile
+const fsBtnInitial = document.getElementById('fullscreenBtn');
+if (fsBtnInitial) fsBtnInitial.classList.toggle('hidden', !isMobile);
 
 // ===== Persistence helpers (localStorage) =====
 const STORAGE_KEYS = { ACTIVE: 'noteQuiz_activeGame', HISTORY: 'noteQuiz_history', DIFFICULTY: 'noteQuiz_difficulty' };
@@ -322,7 +351,14 @@ document.getElementById('checkBtn').addEventListener('click', ()=>{ const r=chec
 document.getElementById('nextBtn').addEventListener('click', ()=>{ const r=checkCurrentAnswer(); if(r===null) return; recordAndAdvance(r) });
 answerInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ const r=checkCurrentAnswer(); if(r===null) return; recordAndAdvance(r) } });
 
-const toDashboardBtn=document.getElementById('toDashboardBtn'); if(toDashboardBtn) toDashboardBtn.addEventListener('click', ()=>{ renderDashboard(); showDashboard() });
+// Dashboard icon
+const toDashboardIcon = document.getElementById('toDashboardIcon');
+if (toDashboardIcon) {
+  toDashboardIcon.addEventListener('click', () => {
+    renderDashboard();
+    showDashboard();
+  });
+}
 const backToActiveBtn=document.getElementById('backToActiveBtn'); if(backToActiveBtn) backToActiveBtn.addEventListener('click', ()=>{ const stored=loadActiveGame(); if(stored){ activeGame=stored; showQuiz() } else { startNewGame() } });
 const startNewBtn=document.getElementById('startNewBtn'); if(startNewBtn) startNewBtn.addEventListener('click', startNewGame);
 
@@ -330,8 +366,8 @@ const difficultySelect=document.getElementById('difficultySelect'); if(difficult
 
 // Fullscreen support (mobile-first with fallback)
 const fsBtn = document.getElementById('fullscreenBtn');
-function enterPseudoFullscreen(){ document.body.style.position='fixed'; document.body.style.inset='0'; document.body.style.overflow='hidden'; window.scrollTo(0,0); sizeCanvas(); pickAndDraw(); }
-function exitPseudoFullscreen(){ document.body.style.position=''; document.body.style.inset=''; document.body.style.overflow=''; sizeCanvas(); pickAndDraw(); }
+function enterPseudoFullscreen(){ document.body.style.position='fixed'; document.body.style.inset='0'; document.body.style.overflow='hidden'; window.scrollTo(0,0); sizeCanvas(); }
+function exitPseudoFullscreen(){ document.body.style.position=''; document.body.style.inset=''; document.body.style.overflow=''; sizeCanvas(); }
 async function toggleFullscreen(){
   try{
     if(!document.fullscreenElement){
@@ -344,10 +380,10 @@ async function toggleFullscreen(){
   }catch(e){ if(document.body.style.position==='fixed') exitPseudoFullscreen(); else enterPseudoFullscreen(); }
 }
 if (fsBtn) fsBtn.addEventListener('click', toggleFullscreen);
-document.addEventListener('fullscreenchange', ()=>{ sizeCanvas(); pickAndDraw(); });
+document.addEventListener('fullscreenchange', ()=>{ sizeCanvas(); });
 
 // Zoom toggle
-const zoomBtn = document.getElementById('zoomBtn');
+const zoomBtn = document.getElementById('zoomIcon');
 let zoomed = false;
 function toggleZoom(){ zoomed = !zoomed; const scale = zoomed ? 1.5 : 1; canvas.style.transform = `scale(${scale})`; canvas.style.transformOrigin = 'center'; }
 if (zoomBtn) zoomBtn.addEventListener('click', toggleZoom);
@@ -366,6 +402,18 @@ canvas.addEventListener('dblclick', toggleZoom);
     console.assert(poolPlus4.length >= poolPlus2.length, 'Plus4 pool should be >= plus2');
     console.assert(typeof randomNote()==='object', 'randomNote returns an object');
     console.assert(typeof drawStaff === 'function' && typeof drawNote === 'function', 'draw functions exist');
+    // New tests: UI expectations
+    console.assert(document.getElementById('fullscreenBtn').classList.contains('hidden') === !isMobile, 'Fullscreen visible only on mobile');
+    console.assert(!!document.getElementById('toDashboardIcon'), 'Dashboard icon present');
+    console.assert(!!document.getElementById('zoomIcon'), 'Zoom icon present');
+    // New: simulate dashboard icon click to ensure handler exists and does not throw
+    try {
+      const el = document.getElementById('toDashboardIcon');
+      if (el) { el.dispatchEvent(new Event('click')); }
+      console.assert(!document.getElementById('dashboardArea').classList.contains('hidden'), 'Dashboard becomes visible after click');
+    } catch (e) {
+      console.error('Dashboard click simulation failed', e);
+    }
     console.log('✅ Self tests passed');
     console.groupEnd();
   } catch(err){ console.error('Self tests failed:', err); }
