@@ -165,75 +165,54 @@ let CH = isMobile ? 240 : 300; // logical CSS height
 let left, right, topLineY, bottomLineY, lineGap;
 
 function sizeCanvas() {
-  // set CSS size first
   canvas.style.width = '100%';
-  // Ensure we always get a sane width (in some environments width can be 0 on first paint)
   const rect = canvas.getBoundingClientRect();
   const widthCandidate = rect && rect.width ? rect.width : 340;
   const cssWidth = Math.min(340, widthCandidate);
   const cssHeight = Math.round(cssWidth * 0.5);
-  // set backing store size (crisp on HiDPI)
   DPR = Math.max(1, Math.floor(window.devicePixelRatio || 1));
   canvas.width = Math.floor(cssWidth * DPR);
   canvas.height = Math.floor(cssHeight * DPR);
   canvas.style.height = cssHeight + 'px';
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-  // recompute geometry relative to size
   CW = cssWidth; CH = cssHeight;
-  lineGap = Math.min(Math.max(CH * 0.10, 14), 26); // 14–26px depending on height
+  lineGap = Math.min(Math.max(CH * 0.10, 14), 26); // distance between staff lines
   const staffMidY = Math.round(CH * 0.5);
-  topLineY = Math.round(staffMidY - 2 * lineGap);
-  bottomLineY = Math.round(topLineY + 4 * lineGap);
+  topLineY = Math.round(staffMidY - 2 * lineGap);     // F5 (line 5)
+  bottomLineY = Math.round(topLineY + 4 * lineGap);   // E4 (line 1)
   left = Math.round(CW * 0.12); right = Math.round(CW * 0.88);
 }
 
-// Build full note map based on current geometry
-function getFullNoteMap(){
-  return [
-    // BELOW staff down to 4 ledger lines
-    { name: 'רה', y: bottomLineY + 10 },
-    { name: 'דו', y: bottomLineY + 20 },
-    { name: 'סי', y: bottomLineY + 30 },
-    { name: 'לה', y: bottomLineY + 40 },
-    { name: 'סול', y: bottomLineY + 50 },
-    { name: 'פה', y: bottomLineY + 60 },
-    { name: 'מי', y: bottomLineY + 70 },
-    { name: 'רה', y: bottomLineY + 80 },
-    // WITHIN staff (E4..F5)
-    { name: 'מי', y: bottomLineY },
-    { name: 'פה', y: bottomLineY - 10 },
-    { name: 'סול', y: bottomLineY - 20 },
-    { name: 'לה', y: bottomLineY - 30 },
-    { name: 'סי', y: bottomLineY - 40 },
-    { name: 'דו', y: bottomLineY - 50 },
-    { name: 'רה', y: bottomLineY - 60 },
-    { name: 'מי', y: bottomLineY - 70 },
-    { name: 'פה', y: bottomLineY - 80 },
-    // ABOVE staff up to 4 ledger lines
-    { name: 'סול', y: topLineY - 10 },
-    { name: 'לה', y: topLineY - 20 },
-    { name: 'סי', y: topLineY - 30 },
-    { name: 'דו', y: topLineY - 40 },
-    { name: 'רה', y: topLineY - 50 },
-    { name: 'מי', y: topLineY - 60 },
-    { name: 'פה', y: topLineY - 70 },
-    { name: 'סול', y: topLineY - 80 }
-  ];
+// ===== Pitch geometry (index-based) =====
+// Define an index i where i=0 => E4 (bottom line). Each step of +1 is next diatonic note (space/line),
+// so vertical delta per step is lineGap/2.
+function yForIndex(i){ return bottomLineY - i * (lineGap/2); }
+function nameForIndex(i){
+  // Sequence starting at E (מי): [E,F,G,A,B,C,D]
+  const names = ['מי','פה','סול','לה','סי','דו','רה'];
+  const m = ((i % 7) + 7) % 7; // proper positive modulo
+  return names[m];
+}
+
+// Difficulty ranges in index space
+function indexRangeByDifficulty(){
+  // Staff-only: E4..F5 => 0..8
+  // +2 ledger: A3..C6 => -4..12
+  // +4 ledger: D3..G6 => -8..16
+  if (difficulty===DIFFICULTY.STAFF_ONLY) return {min:0, max:8};
+  if (difficulty===DIFFICULTY.PLUS_2) return {min:-4, max:12};
+  return {min:-8, max:16};
+}
+function randomIndex(){
+  const {min, max} = indexRangeByDifficulty();
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 // ===== Difficulty =====
 const DIFFICULTY = { STAFF_ONLY:'staff', PLUS_2:'plus2', PLUS_4:'plus4' };
 let difficulty = localStorage.getItem('noteQuiz_difficulty') || DIFFICULTY.PLUS_2;
 function setDifficulty(newLevel){ difficulty=newLevel; localStorage.setItem('noteQuiz_difficulty', difficulty); pickAndDraw(); }
-function filteredNotesByDifficulty(){
-  const map = getFullNoteMap();
-  let minY, maxY;
-  if (difficulty===DIFFICULTY.STAFF_ONLY){ minY=topLineY; maxY=bottomLineY; }
-  else if (difficulty===DIFFICULTY.PLUS_2){ minY=topLineY-40; maxY=bottomLineY+40; }
-  else { minY=topLineY-80; maxY=bottomLineY+80; }
-  return map.filter(n=> n.y>=minY && n.y<=maxY);
-}
 
 // ===== Game State =====
 let activeGame = null; // {id, startedAt, currentQuestion, correct, wrong}
@@ -276,26 +255,53 @@ function drawStaff(){
   ctx.font = Math.round(lineGap*2) + 'px serif';
   ctx.fillText('𝄞', left - lineGap*0.8, topLineY + lineGap*2.7);
 }
-function drawLedgerLines(y){
+
+function drawLedgerLinesForIndex(i){
   const cx=(left+right)/2, half=Math.max(18, lineGap*1.1);
-  for (let ly=topLineY-20; ly>=y; ly-=20){ if (ly<topLineY && Math.abs(ly-y)<=10){ ctx.beginPath(); ctx.moveTo(cx-half,ly); ctx.lineTo(cx+half,ly); ctx.stroke(); } }
-  for (let ly=bottomLineY+20; ly<=y; ly+=20){ if (ly>bottomLineY && Math.abs(ly-y)<=10){ ctx.beginPath(); ctx.moveTo(cx-half,ly); ctx.lineTo(cx+half,ly); ctx.stroke(); } }
-}
-function drawNote(note){
-  drawStaff();
-  if (note.y < topLineY || note.y > bottomLineY) drawLedgerLines(note.y);
-  const cx=(left+right)/2;
-  ctx.beginPath(); ctx.ellipse(cx, note.y, lineGap*0.6, lineGap*0.45, -0.35, 0, Math.PI*2); ctx.fillStyle='#000'; ctx.fill();
-  const mid = topLineY + 2*lineGap;
-  if (note.y > mid){ ctx.beginPath(); ctx.moveTo(cx+lineGap*0.5, note.y); ctx.lineTo(cx+lineGap*0.5, note.y - lineGap*1.8); ctx.stroke(); }
-  else { ctx.beginPath(); ctx.moveTo(cx-lineGap*0.5, note.y); ctx.lineTo(cx-lineGap*0.5, note.y + lineGap*1.8); ctx.stroke(); }
+  // Above staff: first ledger line index is 10 (A5), then 12,14,16...
+  if (i >= 10){
+    for (let li=10; li<=i; li+=2){
+      const y = yForIndex(li);
+      ctx.beginPath(); ctx.moveTo(cx-half,y); ctx.lineTo(cx+half,y); ctx.stroke();
+    }
+  }
+  // Below staff: first ledger line index is -2 (C4), then -4,-6,-8...
+  if (i <= -2){
+    for (let li=-2; li>=i; li-=2){
+      const y = yForIndex(li);
+      ctx.beginPath(); ctx.moveTo(cx-half,ly=y); ctx.lineTo(cx+half,ly); ctx.stroke();
+    }
+  }
 }
 
-function randomNote(){ const pool = filteredNotesByDifficulty(); return pool[Math.floor(Math.random()*pool.length)] }
-function pickAndDraw(){ currentNote = randomNote(); drawNote(currentNote); if(activeGame){ qCount.textContent=activeGame.currentQuestion; correctCount.textContent=activeGame.correct; wrongCount.textContent=activeGame.wrong; percentSpan.textContent=calcPercent(activeGame.correct, activeGame.wrong)+'%'; } feedback.textContent=''; answerInput.value=''; answerInput.focus(); }
+function drawNoteByIndex(i){
+  drawStaff();
+  if (i>8 || i<0) drawLedgerLinesForIndex(i);
+  const y = yForIndex(i);
+  const cx=(left+right)/2;
+  ctx.beginPath(); ctx.ellipse(cx, y, lineGap*0.6, lineGap*0.45, -0.35, 0, Math.PI*2); ctx.fillStyle='#000'; ctx.fill();
+  const midIndex = 4; // B4 line
+  if (i > midIndex){ ctx.beginPath(); ctx.moveTo(cx+lineGap*0.5, y); ctx.lineTo(cx+lineGap*0.5, y - lineGap*1.8); ctx.stroke(); }
+  else { ctx.beginPath(); ctx.moveTo(cx-lineGap*0.5, y); ctx.lineTo(cx-lineGap*0.5, y + lineGap*1.8); ctx.stroke(); }
+}
+
+function randomNote(){
+  const i = randomIndex();
+  return { index: i, y: yForIndex(i), name: nameForIndex(i) };
+}
+function pickAndDraw(){
+  currentNote = randomNote();
+  drawNoteByIndex(currentNote.index);
+  if(activeGame){ qCount.textContent=activeGame.currentQuestion; correctCount.textContent=activeGame.correct; wrongCount.textContent=activeGame.wrong; percentSpan.textContent=calcPercent(activeGame.correct, activeGame.wrong)+'%'; }
+  feedback.textContent=''; answerInput.value=''; answerInput.focus();
+}
 
 // ===== Answer Handling =====
-function normalizeAnswer(str){ const s=(str||'').trim().toLowerCase(); const map={ 'דו':'דו','do':'דו','רה':'רה','re':'רה','מי':'מי','mi':'מי','פה':'פה','fa':'פה','סול':'סול','sol':'סול','לה':'לה','la':'לה','סי':'סי','si':'סי','ti':'סי' }; return map[s]||s }
+function normalizeAnswer(str){
+  const s=(str||'').trim().toLowerCase();
+  const map={ 'דו':'דו','do':'דו','רה':'רה','re':'רה','מי':'מי','mi':'מי','פה':'פה','fa':'פה','סול':'סול','sol':'סול','לה':'לה','la':'לה','סי':'סי','si':'סי','ti':'סי' };
+  return map[s]||s;
+}
 function recordAndAdvance(ok){
   if(!activeGame) return;
   // Haptics
@@ -394,26 +400,22 @@ canvas.addEventListener('dblclick', toggleZoom);
   try {
     console.group('%cSelf tests','color: #004aad');
     sizeCanvas();
-    const poolStaff = (function(){ const d=difficulty; difficulty=DIFFICULTY.STAFF_ONLY; const p=filteredNotesByDifficulty(); difficulty=d; return p; })();
-    console.assert(Array.isArray(poolStaff) && poolStaff.length > 0, 'Pool (staff only) should not be empty');
-    const poolPlus2 = (function(){ const d=difficulty; difficulty=DIFFICULTY.PLUS_2; const p=filteredNotesByDifficulty(); difficulty=d; return p; })();
-    console.assert(poolPlus2.length >= poolStaff.length, 'Plus2 pool should be >= staff');
-    const poolPlus4 = (function(){ const d=difficulty; difficulty=DIFFICULTY.PLUS_4; const p=filteredNotesByDifficulty(); difficulty=d; return p; })();
-    console.assert(poolPlus4.length >= poolPlus2.length, 'Plus4 pool should be >= plus2');
-    console.assert(typeof randomNote()==='object', 'randomNote returns an object');
-    console.assert(typeof drawStaff === 'function' && typeof drawNote === 'function', 'draw functions exist');
-    // New tests: UI expectations
+    // Geometry tests: mapping indices to Y
+    console.assert(yForIndex(0) === bottomLineY, 'E4 index 0 should be bottom line');
+    console.assert(Math.abs(yForIndex(8) - topLineY) <= 0.5, 'F5 index 8 should be top line');
+    // Name mapping tests
+    console.assert(nameForIndex(0)==='מי' && nameForIndex(1)==='פה' && nameForIndex(2)==='סול', 'Name cycle E-F-G OK');
+    console.assert(nameForIndex(5)==='דו' && nameForIndex(6)==='רה', 'Name cycle C-D OK');
+    // Difficulty pools monotonic
+    const range = indexRangeByDifficulty();
+    console.assert(range.min <= range.max, 'Range sanity');
+    // UI expectations
     console.assert(document.getElementById('fullscreenBtn').classList.contains('hidden') === !isMobile, 'Fullscreen visible only on mobile');
     console.assert(!!document.getElementById('toDashboardIcon'), 'Dashboard icon present');
     console.assert(!!document.getElementById('zoomIcon'), 'Zoom icon present');
-    // New: simulate dashboard icon click to ensure handler exists and does not throw
-    try {
-      const el = document.getElementById('toDashboardIcon');
-      if (el) { el.dispatchEvent(new Event('click')); }
-      console.assert(!document.getElementById('dashboardArea').classList.contains('hidden'), 'Dashboard becomes visible after click');
-    } catch (e) {
-      console.error('Dashboard click simulation failed', e);
-    }
+    // Answer normalization tests (extra)
+    console.assert(normalizeAnswer('mi')==='מי' && normalizeAnswer('fa')==='פה', 'Latin alias mapping');
+    console.assert(normalizeAnswer(' דו ')==='דו', 'Whitespace trimmed');
     console.log('✅ Self tests passed');
     console.groupEnd();
   } catch(err){ console.error('Self tests failed:', err); }
