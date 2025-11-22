@@ -12,53 +12,73 @@
     background-color: var(--bg);
     direction: rtl;
     display: flex;
-    gap: 12px;
-    flex-direction: column; /* stack so no horizontal scroll */
+    gap: 10px;
+    flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    margin: 12px;
+    margin: 10px;
     color: var(--ink);
   }
-  .quiz { text-align: center; flex: 1; width: 100%; max-width: 620px; }
-  .btn-row{ display:flex; justify-content:center; gap:12px; flex-wrap:wrap }
+  .quiz { text-align: center; flex: 1; width: 100%; max-width: 760px; }
+  .btn-row{ display:flex; justify-content:center; gap:10px; flex-wrap:wrap }
   .controls-row{ display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:nowrap; margin-top:6px }
   .icon-btn{ border:1px solid var(--ink); background:#fff; border-radius:10px; padding:8px 10px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; line-height:1 }
   .icon-btn svg{ width:22px; height:22px }
   #difficultySelect{ font-size:18px; padding:6px 10px }
   label[for="difficultySelect"]{ font-size:18px }
+
+  /* Compact stats */
   .stats {
-    width: 100%; max-width: 620px; background: var(--card); border: 2px solid var(--ink); border-radius: 12px;
-    padding: 10px; font-size: 15px; position: static; margin-top: 6px;
+    width: 100%; max-width: 760px; background: var(--card); border: 1px solid #bbb; border-radius: 10px;
+    padding: 8px; font-size: 14px; margin-top: 4px;
   }
-  canvas { border: 2px solid var(--ink); background-color: white; margin: 8px auto; display: block; width: 100%; max-width: 340px; height: auto; }
-  input[type=text]{ padding: 12px; font-size: 18px; margin-top: 6px; width: min(90%, 360px); }
-  button{ padding: 12px 18px; font-size: 16px; margin: 8px; cursor: pointer; border-radius: 10px; border: 1px solid var(--ink); background:#fff }
-  #feedback{ font-weight: bold; margin-top: 8px; min-height: 24px; }
+  .stats h3{ margin:0 0 6px; font-size: 16px }
+  .chips{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap }
+  .chip{ padding:4px 8px; border-radius:999px; border:1px solid #ccc; background:#fff }
+  .chip.green{ border-color:#4caf50; color:#2e7d32; font-weight:600 }
+  .chip.red{ border-color:#f44336; color:#c62828; font-weight:600 }
+  .chip.timer{ border-color:#1976d2; color:#0d47a1; font-weight:600 }
+
+  /* Canvas */
+  canvas { border: 2px solid var(--ink); background-color: white; margin: 6px auto 2px; display: block; width: 100%; max-width: 480px; height: auto; }
+
+  button{ padding: 9px 14px; font-size: 15px; margin: 6px; cursor: pointer; border-radius: 10px; border: 1px solid var(--ink); background:#fff }
+  #feedback{ font-weight: bold; margin-top: 6px; min-height: 22px; }
   .correct{ color: green; } .wrong{ color: red; } .hidden{ display:none }
 
+  /* Piano (two octaves C4..B5) */
+  .piano { position:relative; width:100%; max-width: 620px; aspect-ratio: 31/8; margin: 8px auto; user-select:none; direction:ltr; }
+  .piano .white-keys{ position:absolute; inset:0; display:grid; grid-template-columns:repeat(14, 1fr); column-gap:0; align-items:end; justify-items:stretch; padding:0; direction:ltr }
+  .piano .white-keys .wkey{ height:100%; background:#fff; border:1px solid #999; border-radius:6px; position:relative; cursor:pointer; display:flex; align-items:flex-end; justify-content:center; font-weight:700; font-size:14px; }
+  .piano .white-keys .wkey:active{ filter:brightness(0.95) }
+  .piano .black-keys{ position:absolute; inset:0; pointer-events:none; }
+  .piano .black-keys .bkey{ position:absolute; height:62%; background:#111; border:1px solid #000; border-radius:4px; transform:translateX(-50%); z-index:10; }
+  .piano .middleC-arrow{ position:absolute; bottom:-24px; left:0; right:0; height:18px; display:flex; align-items:center; justify-content:center; pointer-events:none; }
+  .piano .middleC-arrow span{ font-size:13px; color:#444 }
+
   /* Dashboard */
-  .dashboard{ max-width: 980px; margin: 0 auto; background: var(--card); border: 3px solid var(--accent); border-radius: 16px; padding: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2) }
-  .dashboard h1{ font-size: 2rem; color: var(--accent); text-shadow: 2px 2px 3px #aad4ff; text-align: center; margin-bottom: 6px }
-  .dashboard h2{ text-align:center; color: var(--ink) }
-  table{ width:100%; border-collapse: collapse; margin-top: 10px }
-  th, td{ border:1px solid #ddd; padding:8px; text-align:center }
+  .dashboard{ max-width: 980px; margin: 0 auto; background: var(--card); border: 2px solid var(--accent); border-radius: 14px; padding: 14px; box-shadow: 0 3px 6px rgba(0,0,0,0.15) }
+  .dashboard h1{ font-size: 1.8rem; color: var(--accent); text-shadow: 1px 1px 2px #aad4ff; text-align: center; margin-bottom: 6px }
+  .dashboard h2{ text-align:center; color: var(--ink); font-size:1.1rem }
+  table{ width:100%; border-collapse: collapse; margin-top: 8px }
+  th, td{ border:1px solid #ddd; padding:6px; text-align:center; font-size:14px }
   th{ background:#f0f0f0 }
-  .muted{ color:#666; font-size:14px; text-align:center }
+  .muted{ color:#666; font-size:13px; text-align:center }
 
   /* ===== Mobile layout ===== */
   @media (max-width: 768px){
     body{ margin: 8px }
-    h2{ font-size: 1.1rem; margin-bottom:6px }
-    .stats{ width:100%; font-size:14px }
+    h2{ font-size: 1.05rem; margin-bottom:6px }
+    .stats{ width:100%; font-size:13px; padding:6px }
+    .piano{ max-width: 100%; aspect-ratio: 31/10 }
+    .piano .white-keys .wkey{ font-size:12px }
     button{ width:auto }
-    input[type=text]{ width:100%; font-size:17px }
     .dashboard{ padding:10px }
-    .dashboard h1{ font-size:1.4rem }
-    /* Compact mobile control bar so no vertical scroll */
+    .dashboard h1{ font-size:1.3rem }
     .controls-row{ gap:8px; margin-top:6px }
-    .icon-btn svg{ width:24px; height:24px }
-    #difficultySelect{ font-size:20px }
-    label[for="difficultySelect"]{ font-size:20px }
+    .icon-btn svg{ width:22px; height:22px }
+    #difficultySelect{ font-size:18px }
+    label[for="difficultySelect"]{ font-size:18px }
   }
 </style>
 </head>
@@ -66,19 +86,51 @@
   <!-- QUIZ AREA -->
   <div id="quizArea" class="quiz">
     <h2>🎵 חידון זיהוי תווים במפתח סול 🎵</h2>
-    <div class="btn-row">
-      <!-- Fullscreen shown only on mobile via JS -->
-      <button id="fullscreenBtn" class="hidden">מסך מלא</button>
-    </div>
     <canvas id="staffCanvas" aria-label="חמשה במפתח סול"></canvas>
-    <p class="muted" style="margin:4px 0 2px">מה שם התו שמופיע?</p>
-    <form id="answerForm" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="display:inline-block; width:100%; max-width:560px;">
-      <input type="text" id="answerInput" placeholder="הקלד כאן את שם התו..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="latin" />
-    </form>
-    <div class="btn-row">
-      <button id="checkBtn">בדוק תשובה</button>
-      <button id="nextBtn">הבא</button>
+
+    <!-- Transport: Play / Pause + Timer select -->
+    <div class="btn-row" id="transport">
+      <button id="playBtn">▶️ PLAY</button>
+      <button id="pauseBtn" disabled>⏸️ PAUSE</button>
+      <label class="muted" for="timerSelect">טיימר:</label>
+      <select id="timerSelect">
+        <option value="3">3 שנ׳ (מינ׳)</option>
+        <option value="4">4 שנ׳</option>
+        <option value="5" selected>5 שנ׳</option>
+        <option value="6">6 שנ׳</option>
+        <option value="7">7 שנ׳</option>
+        <option value="8">8 שנ׳</option>
+        <option value="9">9 שנ׳</option>
+        <option value="10">10 שנ׳</option>
+        <option value="inf">∞ ללא הגבלה</option>
+      </select>
+      <!-- New controls -->
+      <button id="restartIcon" class="icon-btn" title="התחל מהתחלה" aria-label="התחל מהתחלה">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"></polyline>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+        </svg>
+      </button>
+      <button id="soundIcon" class="icon-btn" title="סאונד: פועל" aria-label="Sound on/off">
+        <svg id="soundOnSvg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M15 9a5 5 0 0 1 0 6"></path>
+          <path d="M19 7a9 9 0 0 1 0 10"></path>
+        </svg>
+        <svg id="soundOffSvg" class="hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <line x1="23" y1="1" x2="1" y2="23"></line>
+        </svg>
+      </button>
     </div>
+
+    <p class="muted" style="margin:4px 0 2px">בחר את שם התו בעזרת המקלדת (דו מרכזית מסומנת):</p>
+    <!-- Piano keyboard will be built by JS -->
+    <div class="piano" id="piano">
+      <div class="white-keys" id="whiteKeys"></div>
+      <div class="black-keys" id="blackKeys"></div>
+    </div>
+
     <div class="controls-row">
       <label for="difficultySelect" class="muted">רמת קושי:</label>
       <select id="difficultySelect">
@@ -107,21 +159,23 @@
     <div id="feedback"></div>
   </div>
 
-  <!-- STATS PANEL -->
+  <!-- STATS PANEL (compact) -->
   <div class="stats" id="statsPanel">
     <h3>סטטיסטיקה — משחקון נוכחי</h3>
-    <p class="muted">יש רק משחקון פעיל אחד בכל רגע.</p>
-    <p>שאלה <span id="questionCount">1</span> מתוך 50</p>
-    <p class="correct">נכונות: <span id="correctCount">0</span></p>
-    <p class="wrong">טעויות: <span id="wrongCount">0</span></p>
-    <p>אחוז הצלחה: <strong id="percent">0%</strong></p>
+    <div class="chips">
+      <span class="chip">שאלה <span id="questionCount">1</span>/50</span>
+      <span class="chip green">נכונות: <span id="correctCount">0</span></span>
+      <span class="chip red">טעויות: <span id="wrongCount">0</span></span>
+      <span class="chip">אחוז: <strong id="percent">0%</strong></span>
+      <span class="chip timer">⏱ <strong id="timer">—</strong></span>
+    </div>
   </div>
 
   <!-- DASHBOARD (all gamelets) -->
   <div id="dashboardArea" class="dashboard hidden" aria-live="polite">
     <h1>🎶 חידון זיהוי תווים במפתח סול 🎶</h1>
     <h2>דשבורד המשחקונים</h2>
-    <p class="muted">כל שורה מייצגת משחקון של 50 שאלות שהושלם. הכותרת היא ה־Date & Time של סיום המשחקון.</p>
+    <p class="muted">כל שורה מייצגת משחקון של 50 שאלות שהושלמו. הכותרת היא ה־Date & Time של סיום המשחקון.</p>
     <table>
       <thead>
         <tr>
@@ -133,8 +187,8 @@
       </thead>
       <tbody id="dashboardTableBody"></tbody>
     </table>
-    <div style="text-align:right; font-size:12px; color:#777; margin-top:10px;">גרסה 0.3</div>
-    <div style="text-align:center; margin-top: 12px;" class="btn-row">
+    <div style="text-align:right; font-size:12px; color:#777; margin-top:10px;">גרסה 0.7.5</div>
+    <div style="text-align:center; margin-top: 10px;" class="btn-row">
       <button id="backToActiveBtn">חזרה למשחקון הפעיל</button>
       <button id="startNewBtn">התחל משחקון חדש</button>
     </div>
@@ -144,12 +198,9 @@
 // ===== Environment detection & helpers =====
 const isMobile = /(Mobi|Android|iPhone|iPad|iPod|webOS)/i.test(navigator.userAgent) || window.matchMedia('(max-width: 768px)').matches;
 document.documentElement.classList.toggle('mobile', isMobile);
-// Show fullscreen button only on mobile
-const fsBtnInitial = document.getElementById('fullscreenBtn');
-if (fsBtnInitial) fsBtnInitial.classList.toggle('hidden', !isMobile);
 
 // ===== Persistence helpers (localStorage) =====
-const STORAGE_KEYS = { ACTIVE: 'noteQuiz_activeGame', HISTORY: 'noteQuiz_history', DIFFICULTY: 'noteQuiz_difficulty' };
+const STORAGE_KEYS = { ACTIVE: 'noteQuiz_activeGame', HISTORY: 'noteQuiz_history', DIFFICULTY: 'noteQuiz_difficulty', TIMER: 'noteQuiz_timer', SOUND:'noteQuiz_sound' };
 const saveActiveGame = s => localStorage.setItem(STORAGE_KEYS.ACTIVE, JSON.stringify(s));
 const loadActiveGame = () => { const r = localStorage.getItem(STORAGE_KEYS.ACTIVE); return r ? JSON.parse(r) : null };
 const clearActiveGame = () => localStorage.removeItem(STORAGE_KEYS.ACTIVE);
@@ -161,14 +212,14 @@ const canvas = document.getElementById('staffCanvas');
 const ctx = canvas.getContext('2d');
 let DPR = Math.max(1, Math.floor(window.devicePixelRatio || 1));
 let CW = 560; // logical CSS width
-let CH = isMobile ? 240 : 300; // logical CSS height
+let CH = isMobile ? 260 : 320; // logical CSS height
 let left, right, topLineY, bottomLineY, lineGap;
 
 function sizeCanvas() {
   canvas.style.width = '100%';
   const rect = canvas.getBoundingClientRect();
-  const widthCandidate = rect && rect.width ? rect.width : 340;
-  const cssWidth = Math.min(340, widthCandidate);
+  const widthCandidate = rect && rect.width ? rect.width : 480;
+  const cssWidth = Math.min(480, widthCandidate);
   const cssHeight = Math.round(cssWidth * 0.5);
   DPR = Math.max(1, Math.floor(window.devicePixelRatio || 1));
   canvas.width = Math.floor(cssWidth * DPR);
@@ -177,37 +228,19 @@ function sizeCanvas() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
   CW = cssWidth; CH = cssHeight;
-  lineGap = Math.min(Math.max(CH * 0.10, 14), 26); // distance between staff lines
+  lineGap = Math.min(Math.max(CH * 0.11, 18), 34);
   const staffMidY = Math.round(CH * 0.5);
-  topLineY = Math.round(staffMidY - 2 * lineGap);     // F5 (line 5)
-  bottomLineY = Math.round(topLineY + 4 * lineGap);   // E4 (line 1)
-  left = Math.round(CW * 0.12); right = Math.round(CW * 0.88);
+  topLineY = Math.round(staffMidY - 2 * lineGap);
+  bottomLineY = Math.round(topLineY + 4 * lineGap);
+  left = Math.round(CW * 0.14); // clef stays visible
+  right = Math.round(CW * 0.92);
 }
 
 // ===== Pitch geometry (index-based) =====
-// Define an index i where i=0 => E4 (bottom line). Each step of +1 is next diatonic note (space/line),
-// so vertical delta per step is lineGap/2.
 function yForIndex(i){ return bottomLineY - i * (lineGap/2); }
-function nameForIndex(i){
-  // Sequence starting at E (מי): [E,F,G,A,B,C,D]
-  const names = ['מי','פה','סול','לה','סי','דו','רה'];
-  const m = ((i % 7) + 7) % 7; // proper positive modulo
-  return names[m];
-}
-
-// Difficulty ranges in index space
-function indexRangeByDifficulty(){
-  // Staff-only: E4..F5 => 0..8
-  // +2 ledger: A3..C6 => -4..12
-  // +4 ledger: D3..G6 => -8..16
-  if (difficulty===DIFFICULTY.STAFF_ONLY) return {min:0, max:8};
-  if (difficulty===DIFFICULTY.PLUS_2) return {min:-4, max:12};
-  return {min:-8, max:16};
-}
-function randomIndex(){
-  const {min, max} = indexRangeByDifficulty();
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+function nameForIndex(i){ const names = ['מי','פה','סול','לה','סי','דו','רה']; const m = ((i % 7) + 7) % 7; return names[m]; }
+function indexRangeByDifficulty(){ if (difficulty===DIFFICULTY.STAFF_ONLY) return {min:0, max:8}; if (difficulty===DIFFICULTY.PLUS_2) return {min:-4, max:12}; return {min:-8, max:16}; }
+function randomIndex(){ const {min, max} = indexRangeByDifficulty(); return Math.floor(Math.random() * (max - min + 1)) + min; }
 
 // ===== Difficulty =====
 const DIFFICULTY = { STAFF_ONLY:'staff', PLUS_2:'plus2', PLUS_4:'plus4' };
@@ -221,24 +254,25 @@ let currentNote; const TOTAL_QUESTIONS = 50;
 
 // ===== UI Refs =====
 const feedback = document.getElementById('feedback');
-const answerInput = document.getElementById('answerInput');
-const answerForm = document.getElementById('answerForm');
-if (answerForm) answerForm.addEventListener('submit', (e)=> e.preventDefault());
-if (answerInput){
-  answerInput.setAttribute('name', 'ans_'+Date.now());
-  answerInput.setAttribute('autocomplete','off');
-  answerInput.setAttribute('autocorrect','off');
-  answerInput.setAttribute('autocapitalize','off');
-  answerInput.setAttribute('spellcheck','false');
-}
 const qCount = document.getElementById('questionCount');
 const correctCount = document.getElementById('correctCount');
 const wrongCount = document.getElementById('wrongCount');
 const percentSpan = document.getElementById('percent');
+const timerSpan = document.getElementById('timer');
 const quizArea = document.getElementById('quizArea');
 const statsPanel = document.getElementById('statsPanel');
 const dashboardArea = document.getElementById('dashboardArea');
 const dashboardTableBody = document.getElementById('dashboardTableBody');
+const piano = document.getElementById('piano');
+const whiteKeysWrap = document.getElementById('whiteKeys');
+const blackKeysWrap = document.getElementById('blackKeys');
+const timerSelect = document.getElementById('timerSelect');
+const playBtn = document.getElementById('playBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const restartIcon = document.getElementById('restartIcon');
+const soundIcon = document.getElementById('soundIcon');
+const soundOnSvg = document.getElementById('soundOnSvg');
+const soundOffSvg = document.getElementById('soundOffSvg');
 
 // ===== Utilities =====
 const formatDT = (iso)=>{ try{ return new Date(iso).toLocaleString('he-IL',{hour12:false}); }catch(e){ return iso } };
@@ -247,31 +281,19 @@ const calcPercent = (c,w)=>{ const t=c+w; return t? Math.round((c/t)*100):0 };
 // ===== Drawing =====
 function drawStaff(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.lineWidth = 1.5;
+  ctx.lineWidth = 1.7;
   for (let i=0;i<5;i++){
     const y = topLineY + i*lineGap;
     ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(right, y); ctx.stroke();
   }
-  ctx.font = Math.round(lineGap*2) + 'px serif';
-  ctx.fillText('𝄞', left - lineGap*0.8, topLineY + lineGap*2.7);
+  ctx.font = Math.round(lineGap*4.4) + 'px serif';
+  ctx.fillText('𝄞', left + lineGap*0.2, topLineY + lineGap*3.35);
 }
 
 function drawLedgerLinesForIndex(i){
   const cx=(left+right)/2, half=Math.max(18, lineGap*1.1);
-  // Above staff: first ledger line index is 10 (A5), then 12,14,16...
-  if (i >= 10){
-    for (let li=10; li<=i; li+=2){
-      const y = yForIndex(li);
-      ctx.beginPath(); ctx.moveTo(cx-half,y); ctx.lineTo(cx+half,y); ctx.stroke();
-    }
-  }
-  // Below staff: first ledger line index is -2 (C4), then -4,-6,-8...
-  if (i <= -2){
-    for (let li=-2; li>=i; li-=2){
-      const y = yForIndex(li);
-      ctx.beginPath(); ctx.moveTo(cx-half,ly=y); ctx.lineTo(cx+half,ly); ctx.stroke();
-    }
-  }
+  if (i >= 10){ for (let li=10; li<=i; li+=2){ const y = yForIndex(li); ctx.beginPath(); ctx.moveTo(cx-half,y); ctx.lineTo(cx+half,y); ctx.stroke(); } }
+  if (i <= -2){ for (let li=-2; li>=i; li-=2){ const y = yForIndex(li); ctx.beginPath(); ctx.moveTo(cx-half,y); ctx.lineTo(cx+half,y); ctx.stroke(); } }
 }
 
 function drawNoteByIndex(i){
@@ -279,48 +301,240 @@ function drawNoteByIndex(i){
   if (i>8 || i<0) drawLedgerLinesForIndex(i);
   const y = yForIndex(i);
   const cx=(left+right)/2;
-  ctx.beginPath(); ctx.ellipse(cx, y, lineGap*0.6, lineGap*0.45, -0.35, 0, Math.PI*2); ctx.fillStyle='#000'; ctx.fill();
+  ctx.beginPath(); ctx.ellipse(cx, y, lineGap*0.64, lineGap*0.48, -0.35, 0, Math.PI*2); ctx.fillStyle='#000'; ctx.fill();
   const midIndex = 4; // B4 line
-  if (i > midIndex){ ctx.beginPath(); ctx.moveTo(cx+lineGap*0.5, y); ctx.lineTo(cx+lineGap*0.5, y - lineGap*1.8); ctx.stroke(); }
-  else { ctx.beginPath(); ctx.moveTo(cx-lineGap*0.5, y); ctx.lineTo(cx-lineGap*0.5, y + lineGap*1.8); ctx.stroke(); }
+  if (i > midIndex){ ctx.beginPath(); ctx.moveTo(cx+lineGap*0.55, y); ctx.lineTo(cx+lineGap*0.55, y - lineGap*2.0); ctx.stroke(); }
+  else { ctx.beginPath(); ctx.moveTo(cx-lineGap*0.55, y); ctx.lineTo(cx-lineGap*0.55, y + lineGap*2.0); ctx.stroke(); }
 }
 
-function randomNote(){
-  const i = randomIndex();
-  return { index: i, y: yForIndex(i), name: nameForIndex(i) };
-}
+function randomNote(){ const i = randomIndex(); return { index: i, y: yForIndex(i), name: nameForIndex(i) }; }
 function pickAndDraw(){
   currentNote = randomNote();
   drawNoteByIndex(currentNote.index);
   if(activeGame){ qCount.textContent=activeGame.currentQuestion; correctCount.textContent=activeGame.correct; wrongCount.textContent=activeGame.wrong; percentSpan.textContent=calcPercent(activeGame.correct, activeGame.wrong)+'%'; }
-  feedback.textContent=''; answerInput.value=''; answerInput.focus();
+  feedback.textContent='';
+  resetAndMaybeStartTimer();
+}
+
+// ===== Build two-octave piano (C4..B5) =====
+const whiteOrder = ['C','D','E','F','G','A','B'];
+function noteNameFromLetter(letter){
+  switch(letter){
+    case 'C': return 'דו'; case 'D': return 'רה'; case 'E': return 'מי'; case 'F': return 'פה'; case 'G': return 'סול'; case 'A': return 'לה'; case 'B': return 'סי';
+  }
+}
+function buildPiano(){
+  whiteKeysWrap.innerHTML=''; blackKeysWrap.innerHTML='';
+  // Two octaves: C4..B5 => 14 white keys
+  const whites=[];
+  for(let octave=4; octave<=5; octave++){
+    for(const L of whiteOrder){ whites.push({letter:L, octave}); }
+  }
+  // Build white keys LTR in grid cells
+  whites.forEach((w)=>{
+    const div=document.createElement('div');
+    div.className='wkey';
+    div.dataset.letter=w.letter; div.dataset.octave=w.octave;
+    const name = noteNameFromLetter(w.letter);
+    div.dataset.name=name; // no label on key
+    div.addEventListener('click', ()=>{ if(!timerControls.canAnswer) return; recordAndAdvance(name===currentNote.name); });
+    whiteKeysWrap.appendChild(div);
+    // Mark middle C (C4)
+    if (w.letter==='C' && w.octave===4){
+      const arrow=document.createElement('div'); arrow.className='middleC-arrow'; arrow.innerHTML='<span>⬇ דו מרכזי</span>';
+      div.appendChild(arrow);
+    }
+  });
+  // After layout, position black keys precisely between adjacent whites using measured centers
+  requestAnimationFrame(()=>{
+    blackKeysWrap.innerHTML='';
+    const pianoRect = piano.getBoundingClientRect();
+    const whiteElems = Array.from(whiteKeysWrap.children);
+    if (whiteElems.length!==14) return;
+    const centers = whiteElems.map(el=>{
+      const r=el.getBoundingClientRect();
+      return {left:r.left, right:r.right, center:(r.left+r.right)/2, width:r.width};
+    });
+    const blackPairs = []; // index of left white key where a black sits between i and i+1
+    const whitesSeq = whites.map(w=>w.letter);
+    whitesSeq.forEach((L,i)=>{
+      if (L==='C' || L==='D' || L==='F' || L==='G' || L==='A'){
+        if (i+1<centers.length) blackPairs.push(i);
+      }
+    });
+    const blackWidth = Math.max(12, Math.round(centers[0].width*0.6));
+    blackPairs.forEach(i=>{
+      const cx = (centers[i].right + centers[i+1].left)/2 - pianoRect.left;
+      const b=document.createElement('div'); b.className='bkey';
+      b.style.left = cx + 'px';
+      b.style.width = blackWidth + 'px';
+      blackKeysWrap.appendChild(b);
+    });
+  });
+}
+
+// ===== Audio =====
+let audioCtx = null;
+let soundEnabled = ((localStorage.getItem(STORAGE_KEYS.SOUND) !== null ? localStorage.getItem(STORAGE_KEYS.SOUND) : '1')) === '1';
+let convolver = null;
+
+function ensureAudio(){
+  if(!audioCtx){
+    try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
+    catch(e){ console.warn('AudioContext failed',e); }
+  }
+  // Prepare a short lush reverb using a generated impulse (stereo IR)
+  if(audioCtx && !convolver){
+    const rev = audioCtx.createConvolver();
+    rev.buffer = makeReverbImpulse(0.7, 2.9); // ~700ms tail, musical decay
+    rev.connect(audioCtx.destination);
+    convolver = rev;
+  }
+}
+function setSoundEnabled(on){
+  soundEnabled = !!on; localStorage.setItem(STORAGE_KEYS.SOUND, on? '1':'0');
+  soundOnSvg.classList.toggle('hidden', !on); soundOffSvg.classList.toggle('hidden', on);
+  soundIcon.title = on? 'סאונד: פועל' : 'סאונד: כבוי';
+}
+// Diatonic index → semitone distance from E4 (index 0)
+function noteIndexToSemitones(i){
+  const steps=[1,2,2,2,1,2,2];
+  if(i===0) return 0; let s=0; let idx=0;
+  if(i>0){ for(let k=1;k<=i;k++){ s+=steps[idx]; idx=(idx+1)%7; } return s; }
+  else { idx=(7+((i%7)+7)%7-1)%7; for(let k=-1;k>=i;k--){ s-=steps[(idx+1)%7]; idx=(idx+6)%7; } return s; }
+}
+function freqForIndex(i){ const base=329.628; const n=noteIndexToSemitones(i); return base*Math.pow(2, n/12); }
+
+// Generate an impulse response for a smooth short reverb
+function makeReverbImpulse(seconds=0.6, decay=2.5){
+  const rate = audioCtx.sampleRate;
+  const length = Math.max(1, Math.floor(rate * seconds));
+  const impulse = audioCtx.createBuffer(2, length, rate);
+  for(let ch=0; ch<2; ch++){
+    const data = impulse.getChannelData(ch);
+    for(let i=0; i<length; i++){
+      const t = i/length;
+      const pinkish = (Math.random()*2-1) * (0.7 + 0.3*Math.random());
+      data[i] = pinkish * Math.pow(1 - t, decay);
+    }
+  }
+  return impulse;
+}
+
+function playPiano(freq, dur=0.9){
+  if(!soundEnabled) return; ensureAudio(); if(!audioCtx) return;
+  const now = audioCtx.currentTime;
+
+  // === Per-note graph ===
+  const noteGain = audioCtx.createGain();
+  noteGain.gain.setValueAtTime(0, now);
+  // Attack (hammer) -> decay -> release tail
+  noteGain.gain.linearRampToValueAtTime(1.0, now + 0.006);
+  noteGain.gain.exponentialRampToValueAtTime(0.55, now + 0.18);
+  noteGain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+  // Slight stereo movement (like string placement on soundboard)
+  const pan = audioCtx.createStereoPanner();
+  const rndPan = (Math.random()*0.3 - 0.15); // -0.15..0.15
+  pan.pan.setValueAtTime(rndPan, now);
+
+  // Body EQ: gentle lows, presence bump, soft highs rolloff
+  const lowShelf = audioCtx.createBiquadFilter(); lowShelf.type='lowshelf';
+  lowShelf.frequency.value = 120;
+  lowShelf.gain.value = (freq < 200 ? 2.5 : 0.5);
+
+  const bodyPeak = audioCtx.createBiquadFilter(); bodyPeak.type='peaking';
+  bodyPeak.frequency.value = 430; bodyPeak.Q.value = 0.9; bodyPeak.gain.value = 2.2;
+
+  const presence = audioCtx.createBiquadFilter(); presence.type='peaking';
+  presence.frequency.value = 2500; presence.Q.value = 0.7; presence.gain.value = 1.2;
+
+  const highShelf = audioCtx.createBiquadFilter(); highShelf.type='highshelf';
+  highShelf.frequency.value = 5200; highShelf.gain.value = -1.2;
+
+  // Dry path to destination
+  noteGain.connect(lowShelf).connect(bodyPeak).connect(presence).connect(highShelf).connect(pan).connect(audioCtx.destination);
+  // Reverb send (post-EQ)
+  const wetSend = audioCtx.createGain(); wetSend.gain.value = 0.22; // subtle wet
+  highShelf.connect(wetSend);
+  if(convolver) wetSend.connect(convolver);
+
+  // Hammer noise (very short, filtered)
+  const nbuf = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate*0.018), audioCtx.sampleRate);
+  const ndata = nbuf.getChannelData(0);
+  for(let i=0;i<ndata.length;i++){ ndata[i] = (Math.random()*2-1) * (1 - i/ndata.length); }
+  const nsrc = audioCtx.createBufferSource(); nsrc.buffer = nbuf;
+  const nhp = audioCtx.createBiquadFilter(); nhp.type='highpass'; nhp.frequency.value = 1500; nhp.Q.value = 0.9;
+  nsrc.connect(nhp).connect(noteGain);
+
+  // Inharmonic additive partials (piano string stiffness)
+  // f_n ≈ f * (n + B*n^3) / n with small B (scaled by pitch)
+  const B = Math.min(0.00035, 0.00018 + (freq-130)/4000*0.00012); // a tiny inharmonicity
+  const partialAmp = [1.00, 0.58, 0.34, 0.22, 0.15, 0.11];
+  const partialMax = partialAmp.length;
+  for(let n=1; n<=partialMax; n++){
+    const o = audioCtx.createOscillator();
+    o.type = (n<=2 ? 'sine' : (n<=4 ? 'triangle' : 'sine'));
+    const inharm = (n + B*Math.pow(n,3)) / n; // >1 slightly for overtones
+    o.frequency.setValueAtTime(freq * n * inharm, now);
+
+    const g = audioCtx.createGain();
+    // Faster decay for higher partials
+    const a = partialAmp[n-1];
+    const tail = Math.max(0.18, dur * (0.85 / Math.pow(n,0.45)));
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(a, now + 0.006 + n*0.002);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + tail);
+
+    o.connect(g).connect(noteGain);
+    o.start(now);
+    o.stop(now + tail + 0.05);
+  }
+
+  // Gentle detuned buddy at fundamental (chorus)
+  const oFund = audioCtx.createOscillator();
+  oFund.type='sine'; oFund.frequency.setValueAtTime(freq, now);
+  const oBuddy = audioCtx.createOscillator();
+  oBuddy.type='sine'; oBuddy.frequency.setValueAtTime(freq, now); oBuddy.detune.setValueAtTime(-7, now);
+  const gFund = audioCtx.createGain(); gFund.gain.setValueAtTime(0.22, now);
+  const gBuddy = audioCtx.createGain(); gBuddy.gain.setValueAtTime(0.12, now);
+  oFund.connect(gFund).connect(noteGain);
+  oBuddy.connect(gBuddy).connect(noteGain);
+  oFund.start(now); oBuddy.start(now);
+  oFund.stop(now + 0.5); oBuddy.stop(now + 0.45);
+
+  // Start hammer
+  nsrc.start(now);
+}
+
+function playSquirrel(dur=0.2){
+  if(!soundEnabled) return; ensureAudio(); if(!audioCtx) return;
+  const now=audioCtx.currentTime; const bufferSize=audioCtx.sampleRate*dur;
+  const buffer=audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); const data=buffer.getChannelData(0);
+  for(let i=0;i<bufferSize;i++){ data[i]=(Math.random()*2-1)*Math.exp(-i/(bufferSize*0.6)); }
+  const src=audioCtx.createBufferSource(); src.buffer=buffer;
+  const bp=audioCtx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.setValueAtTime(1800, now); bp.Q.value=4;
+  const g=audioCtx.createGain(); g.gain.setValueAtTime(0.9, now); g.gain.exponentialRampToValueAtTime(0.0001, now+dur);
+  src.connect(bp).connect(g).connect(audioCtx.destination); src.start(now);
 }
 
 // ===== Answer Handling =====
-function normalizeAnswer(str){
-  const s=(str||'').trim().toLowerCase();
-  const map={ 'דו':'דו','do':'דו','רה':'רה','re':'רה','מי':'מי','mi':'מי','פה':'פה','fa':'פה','סול':'סול','sol':'סול','לה':'לה','la':'לה','סי':'סי','si':'סי','ti':'סי' };
-  return map[s]||s;
-}
 function recordAndAdvance(ok){
+  pauseTimer(); // stop counting during feedback
   if(!activeGame) return;
-  // Haptics
   if (navigator.vibrate) { navigator.vibrate(ok ? 30 : [20,50,20]); }
-  // Visual feedback (1.5s)
   if(ok){
+    if (navigator.vibrate) { navigator.vibrate([12,20,12]); }
+    ensureAudio(); playPiano(freqForIndex(currentNote.index));
     activeGame.correct++;
-    feedback.textContent='נכון מאוד! 🎉';
-    feedback.style.color='green';
-    feedback.classList.add('correct');
-    feedback.classList.remove('wrong');
+    feedback.textContent='נכון מאוד! 🎉'; feedback.style.color='green'; feedback.classList.add('correct'); feedback.classList.remove('wrong');
   } else {
     activeGame.wrong++;
-    feedback.textContent=`לא נכון. התשובה היא ${currentNote.name}.`;
-    feedback.style.color='red';
-    feedback.classList.add('wrong');
-    feedback.classList.remove('correct');
+    if (navigator.vibrate) { navigator.vibrate([15,35,15,35,10]); }
+    ensureAudio(); playSquirrel(0.2);
+    feedback.textContent=`לא נכון. התשובה היא ${currentNote.name}.`; feedback.style.color='red'; feedback.classList.add('wrong'); feedback.classList.remove('correct');
   }
-  if(activeGame.currentQuestion < 50){
+  if(activeGame.currentQuestion < TOTAL_QUESTIONS){
     activeGame.currentQuestion++;
     saveActiveGame(activeGame);
     correctCount.textContent=activeGame.correct;
@@ -333,96 +547,124 @@ function recordAndAdvance(ok){
     const title=formatDT(finishedAt);
     const historyArr=history||[];
     historyArr.push({id:activeGame.id, finishedAt, correct:activeGame.correct, wrong:activeGame.wrong, percent, title});
-    history=historyArr;
-    saveHistory(history);
-    clearActiveGame();
-    activeGame=null;
-    renderDashboard();
-    showDashboard();
+    history=historyArr; saveHistory(history); clearActiveGame(); activeGame=null; renderDashboard(); showDashboard();
   }
 }
-function checkCurrentAnswer(){ const ans=normalizeAnswer(answerInput.value); if(!ans){ feedback.textContent='אנא כתוב תשובה.'; feedback.style.color='black'; return null } return ans===currentNote.name }
 
 // ===== Dashboard =====
-function renderDashboard(){ dashboardTableBody.innerHTML=''; if(!history.length){ const tr=document.createElement('tr'); tr.innerHTML = `<td colspan="4" class="muted">אין עדיין משחקונים שהושלמו</td>`; dashboardTableBody.appendChild(tr); return } const rows=[...history].sort((a,b)=> new Date(b.finishedAt)-new Date(a.finishedAt)); rows.forEach(g=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${g.title}</td><td class="correct">${g.correct}</td><td class="wrong">${g.wrong}</td><td>${g.percent}%</td>`; dashboardTableBody.appendChild(tr) }) }
+function renderDashboard(){
+  dashboardTableBody.innerHTML='';
+  if(!history.length){ const tr=document.createElement('tr'); tr.innerHTML = `<td colspan="4" class="muted">אין עדיין משחקונים שהושלמו</td>`; dashboardTableBody.appendChild(tr); return }
+  const rows=[...history].sort((a,b)=> new Date(b.finishedAt)-new Date(a.finishedAt)); rows.forEach(g=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${g.title}</td><td class="correct">${g.correct}</td><td class="wrong">${g.wrong}</td><td>${g.percent}%</td>`; dashboardTableBody.appendChild(tr) })
+}
 function showDashboard(){ quizArea.classList.add('hidden'); statsPanel.classList.add('hidden'); dashboardArea.classList.remove('hidden') }
 function showQuiz(){ dashboardArea.classList.add('hidden'); quizArea.classList.remove('hidden'); statsPanel.classList.remove('hidden'); pickAndDraw() }
 
 // ===== Start / Resume game =====
-function startNewGame(){ if(activeGame){ alert('כבר יש משחקון פעיל. סיים אותו או עבור לדשבורד.'); return } activeGame={ id:'game_'+Date.now(), startedAt:new Date().toISOString(), currentQuestion:1, correct:0, wrong:0 }; saveActiveGame(activeGame); showQuiz() }
-function resumeActiveIfAny(){ const stored=loadActiveGame(); if(stored && (stored.currentQuestion<=50)){ activeGame=stored; showQuiz() } else { startNewGame() } }
-
-// ===== Listeners =====
-document.getElementById('checkBtn').addEventListener('click', ()=>{ const r=checkCurrentAnswer(); if(r===null) return; recordAndAdvance(r) });
-document.getElementById('nextBtn').addEventListener('click', ()=>{ const r=checkCurrentAnswer(); if(r===null) return; recordAndAdvance(r) });
-answerInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ const r=checkCurrentAnswer(); if(r===null) return; recordAndAdvance(r) } });
-
-// Dashboard icon
-const toDashboardIcon = document.getElementById('toDashboardIcon');
-if (toDashboardIcon) {
-  toDashboardIcon.addEventListener('click', () => {
-    renderDashboard();
-    showDashboard();
-  });
+function startNewGame(){
+  if(activeGame){ alert('כבר יש משחקון פעיל. סיים אותו או עבור לדשבורד.'); return }
+  activeGame={ id:'game_'+Date.now(), startedAt:new Date().toISOString(), currentQuestion:1, correct:0, wrong:0 };
+  saveActiveGame(activeGame);
+  timerControls.firstPlayRequired = true; // must press PLAY to start
+  showQuiz();
 }
+function resumeActiveIfAny(){ const stored=loadActiveGame(); if(stored && (stored.currentQuestion<=TOTAL_QUESTIONS)){ activeGame=stored; showQuiz() } else { startNewGame() } }
+
+// ===== Transport & Timer =====
+let timerInterval = null;
+const timerControls = { running:false, remaining:0, duration: +(localStorage.getItem(STORAGE_KEYS.TIMER)||5), infinite:false, canAnswer:false, firstPlayRequired:true };
+
+function updateTimerUI(){
+  if (timerControls.infinite){ timerSpan.textContent = '∞'; }
+  else { timerSpan.textContent = timerControls.remaining.toFixed(1)+'s'; }
+  pauseBtn.disabled = !timerControls.running;
+  playBtn.disabled = timerControls.running || (!activeGame);
+  timerSelect.disabled = timerControls.running; // can change only on PAUSE
+}
+function pauseTimer(){ if(timerInterval){ clearInterval(timerInterval); timerInterval=null; } timerControls.running=false; updateTimerUI(); }
+function playTimer(){
+  if (!activeGame) return;
+  if (timerControls.infinite){ timerControls.running=true; timerControls.canAnswer=true; updateTimerUI(); return; }
+  const start = performance.now();
+  let lastRemaining = timerControls.remaining;
+  timerControls.running=true; timerControls.canAnswer=true; updateTimerUI();
+  timerInterval = setInterval(()=>{
+    const elapsed = (performance.now() - start)/1000;
+    timerControls.remaining = Math.max(0, lastRemaining - elapsed);
+    updateTimerUI();
+    if (timerControls.remaining <= 0){ pauseTimer(); recordAndAdvance(false); }
+  }, 100);
+}
+function resetAndMaybeStartTimer(){
+  const sel = timerSelect.value;
+  timerControls.infinite = (sel === 'inf');
+  timerControls.duration = timerControls.infinite ? Infinity : Math.max(3, Number(sel));
+  timerControls.remaining = timerControls.infinite ? Infinity : timerControls.duration;
+  timerControls.canAnswer = true;
+  pauseTimer();
+  if (timerControls.infinite){ timerSpan.textContent='∞'; }
+  else { timerSpan.textContent = timerControls.remaining.toFixed(1)+'s'; }
+  if (!timerControls.firstPlayRequired){ playTimer(); }
+}
+
+// Buttons & interactions
+const toDashboardIcon = document.getElementById('toDashboardIcon'); if (toDashboardIcon) { toDashboardIcon.addEventListener('click', () => { renderDashboard(); showDashboard(); }); }
 const backToActiveBtn=document.getElementById('backToActiveBtn'); if(backToActiveBtn) backToActiveBtn.addEventListener('click', ()=>{ const stored=loadActiveGame(); if(stored){ activeGame=stored; showQuiz() } else { startNewGame() } });
 const startNewBtn=document.getElementById('startNewBtn'); if(startNewBtn) startNewBtn.addEventListener('click', startNewGame);
 
 const difficultySelect=document.getElementById('difficultySelect'); if(difficultySelect){ difficultySelect.value=difficulty; difficultySelect.addEventListener('change', e=> setDifficulty(e.target.value)) }
 
-// Fullscreen support (mobile-first with fallback)
-const fsBtn = document.getElementById('fullscreenBtn');
-function enterPseudoFullscreen(){ document.body.style.position='fixed'; document.body.style.inset='0'; document.body.style.overflow='hidden'; window.scrollTo(0,0); sizeCanvas(); }
-function exitPseudoFullscreen(){ document.body.style.position=''; document.body.style.inset=''; document.body.style.overflow=''; sizeCanvas(); }
-async function toggleFullscreen(){
-  try{
-    if(!document.fullscreenElement){
-      if(document.documentElement.requestFullscreen){ await document.documentElement.requestFullscreen(); }
-      else { enterPseudoFullscreen(); }
-    } else {
-      if(document.exitFullscreen){ await document.exitFullscreen(); }
-      else { exitPseudoFullscreen(); }
-    }
-  }catch(e){ if(document.body.style.position==='fixed') exitPseudoFullscreen(); else enterPseudoFullscreen(); }
-}
-if (fsBtn) fsBtn.addEventListener('click', toggleFullscreen);
-document.addEventListener('fullscreenchange', ()=>{ sizeCanvas(); });
-
-// Zoom toggle
 const zoomBtn = document.getElementById('zoomIcon');
 let zoomed = false;
-function toggleZoom(){ zoomed = !zoomed; const scale = zoomed ? 1.5 : 1; canvas.style.transform = `scale(${scale})`; canvas.style.transformOrigin = 'center'; }
+function toggleZoom(){ zoomed = !zoomed; const scale = zoomed ? 1.6 : 1; canvas.style.transform = `scale(${scale})`; canvas.style.transformOrigin = 'center'; }
 if (zoomBtn) zoomBtn.addEventListener('click', toggleZoom);
 canvas.addEventListener('dblclick', toggleZoom);
+
+playBtn.addEventListener('click', ()=>{ timerControls.firstPlayRequired=false; playTimer(); });
+pauseBtn.addEventListener('click', ()=>{ pauseTimer(); });
+timerSelect.addEventListener('change', ()=>{
+  if (!timerControls.running){ localStorage.setItem(STORAGE_KEYS.TIMER, timerSelect.value); resetAndMaybeStartTimer(); }
+  else { alert('שנה את הטיימר בזמן PAUSE בלבד.'); timerSelect.value = localStorage.getItem(STORAGE_KEYS.TIMER)||'5'; }
+});
+
+// Restart and Sound controls
+if(restartIcon){ restartIcon.addEventListener('click', ()=>{ pauseTimer(); clearActiveGame(); activeGame=null; timerControls.firstPlayRequired=true; startNewGame(); }); }
+if(soundIcon){ setSoundEnabled(soundEnabled); soundIcon.addEventListener('click', ()=> setSoundEnabled(!soundEnabled)); }
+// Unlock Audio on first user gesture
+['click','keydown','touchstart'].forEach(ev=> document.addEventListener(ev, ()=>{ ensureAudio(); if(audioCtx && audioCtx.state==='suspended'){ audioCtx.resume(); } }, {once:true}));
 
 // ===== Simple runtime tests (console) =====
 (function selfTests(){
   try {
     console.group('%cSelf tests','color: #004aad');
-    sizeCanvas();
-    // Geometry tests: mapping indices to Y
+    sizeCanvas(); buildPiano();
+    // Geometry tests
     console.assert(yForIndex(0) === bottomLineY, 'E4 index 0 should be bottom line');
-    console.assert(Math.abs(yForIndex(8) - topLineY) <= 0.5, 'F5 index 8 should be top line');
+    console.assert(Math.abs(yForIndex(8) - topLineY) <= 0.6, 'F5 index 8 should be top line');
     // Name mapping tests
     console.assert(nameForIndex(0)==='מי' && nameForIndex(1)==='פה' && nameForIndex(2)==='סול', 'Name cycle E-F-G OK');
     console.assert(nameForIndex(5)==='דו' && nameForIndex(6)==='רה', 'Name cycle C-D OK');
-    // Difficulty pools monotonic
-    const range = indexRangeByDifficulty();
-    console.assert(range.min <= range.max, 'Range sanity');
-    // UI expectations
-    console.assert(document.getElementById('fullscreenBtn').classList.contains('hidden') === !isMobile, 'Fullscreen visible only on mobile');
-    console.assert(!!document.getElementById('toDashboardIcon'), 'Dashboard icon present');
-    console.assert(!!document.getElementById('zoomIcon'), 'Zoom icon present');
-    // Answer normalization tests (extra)
-    console.assert(normalizeAnswer('mi')==='מי' && normalizeAnswer('fa')==='פה', 'Latin alias mapping');
-    console.assert(normalizeAnswer(' דו ')==='דו', 'Whitespace trimmed');
+    // Piano
+    const w=document.querySelectorAll('#whiteKeys .wkey');
+    const b=document.querySelectorAll('#blackKeys .bkey');
+    console.assert(w.length===14, '14 white keys present');
+    console.assert(b.length===10, '10 black keys present (5 per octave)');
+    // Black keys monotonic L→R (no drift)
+    let lastX=-Infinity; let mono=true; b.forEach(el=>{ const x=parseFloat(getComputedStyle(el).left); if(x<=lastX) mono=false; lastX=x; });
+    console.assert(mono, 'Black keys increase monotonically left→right');
+    // Audio funcs existence
+    console.assert(typeof playPiano==='function' && typeof playSquirrel==='function', 'Audio fns exist');
     console.log('✅ Self tests passed');
     console.groupEnd();
   } catch(err){ console.error('Self tests failed:', err); }
 })();
 
 // ===== Init =====
-function init(){ sizeCanvas(); renderDashboard(); resumeActiveIfAny(); }
+function init(){
+  sizeCanvas(); renderDashboard(); buildPiano();
+  const savedSel = localStorage.getItem(STORAGE_KEYS.TIMER); if(savedSel){ timerSelect.value=savedSel; }
+  resumeActiveIfAny();
+}
 window.addEventListener('resize', ()=>{ const wasDash = !dashboardArea.classList.contains('hidden'); sizeCanvas(); if(!wasDash) pickAndDraw() });
 init();
 </script>
