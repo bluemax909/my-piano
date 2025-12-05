@@ -126,7 +126,6 @@
       color:#b0bec5;
       text-align:left;
     }
-
     .version-label{
       font-size:9px;
       color:#90a4ae;
@@ -209,7 +208,6 @@
       font-size:10px;
       color:#4e342e;
     }
-
     .island.stage1{ top:60%; left:15%; transform:translate(-50%,-50%); }
     .island.stage2{ top:35%; left:38%; transform:translate(-50%,-50%); }
     .island.stage3{ top:65%; left:62%; transform:translate(-50%,-50%); }
@@ -240,19 +238,15 @@
       background:radial-gradient(circle at 30% 20%,#fff9c4,#ffe082,#ffb300);
       color:#5d4037;
     }
-
     .bubble.s1-1{ top:40%; left:18%; }
     .bubble.s1-2{ top:30%; left:10%; }
     .bubble.s1-3{ top:52%; left:8%; }
-
     .bubble.s2-1{ top:22%; left:40%; }
     .bubble.s2-2{ top:32%; left:48%; }
     .bubble.s2-3{ top:44%; left:44%; }
-
     .bubble.s3-1{ top:45%; left:64%; }
     .bubble.s3-2{ top:30%; left:56%; }
     .bubble.s3-3{ top:68%; left:56%; }
-
     .bubble.s4-1{ top:24%; left:86%; }
     .bubble.s4-2{ top:36%; left:76%; }
     .bubble.s4-3{ top:56%; left:88%; }
@@ -334,11 +328,9 @@
     .chip.green{ border-color:#4caf50; color:#c8e6c9; font-weight:600; }
     .chip.red{ border-color:#f44336; color:#ffcdd2; font-weight:600; }
     .chip.timer{ border-color:#1976d2; color:#bbdefb; font-weight:600; }
-
-    /* מונע "רעד" של הצ'יפ של הזמן */
     .chip.timer strong{
       display:inline-block;
-      min-width:48px;          /* רוחב קבוע בערך */
+      min-width:48px;
       text-align:center;
       font-variant-numeric:tabular-nums;
     }
@@ -377,17 +369,12 @@
       position:relative;
       width:100%;
       max-width:780px;
-      aspect-ratio:31/6;      /* נמוך – שכולו ייכנס גובה */
+      aspect-ratio:31/6;
       margin:2px auto 0;
       user-select:none;
       direction:ltr;
     }
-    .piano-inner{
-      position:absolute;
-      inset:0;
-      transform-origin:center;
-    }
-    .piano .white-keys{
+    .white-keys{
       position:absolute;
       inset:0;
       display:grid;
@@ -398,7 +385,7 @@
       padding:0;
       direction:ltr;
     }
-    .piano .white-keys .wkey{
+    .wkey{
       height:100%;
       background:#ffffff;
       border:1px solid #b0bec5;
@@ -411,13 +398,13 @@
       font-weight:700;
       font-size:10px;
     }
-    .piano .white-keys .wkey:active{ filter:brightness(0.95); }
-    .piano .black-keys{
+    .wkey:active{ filter:brightness(0.95); }
+    .black-keys{
       position:absolute;
       inset:0;
       pointer-events:none;
     }
-    .piano .black-keys .bkey{
+    .bkey{
       position:absolute;
       height:72%;
       background:#111;
@@ -524,7 +511,7 @@
         </div>
         <div class="top-bar-right">
           <div>אתגר דמו – שלב 1 בתוך החמשה</div>
-          <div class="version-label">v1.5.0 · דמו</div>
+          <div class="version-label">v1.5.1 · דמו</div>
         </div>
       </header>
 
@@ -597,12 +584,10 @@
 
             <canvas id="staffCanvas" aria-label="חמשה במפתח סול"></canvas>
 
-            <p class="muted">בחר את שם התו בעזרת המקלדת (דו מרכזי מסומן במרכז):</p>
+            <p class="muted">בחר את שם התו בעזרת המקלדת (דו מרכזי מסומן):</p>
             <div class="piano" id="piano">
-              <div class="piano-inner" id="pianoInner">
-                <div class="white-keys" id="whiteKeys"></div>
-                <div class="black-keys" id="blackKeys"></div>
-              </div>
+              <div class="white-keys" id="whiteKeys"></div>
+              <div class="black-keys" id="blackKeys"></div>
               <div class="middleC-arrow"><span>⬇ דו מרכזי</span></div>
             </div>
 
@@ -624,7 +609,6 @@
       fixedSeconds: 15
     };
 
-    // ===== אחסון בסיסי (אפשר להרחיב בהמשך) =====
     const STORAGE_KEYS = {
       ACTIVE:'clefio_demo_activeChallenge',
       HISTORY:'clefio_demo_history'
@@ -635,7 +619,6 @@
     const saveHistory = a => localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(a));
     const loadHistory = () => { const r = localStorage.getItem(STORAGE_KEYS.HISTORY); return r ? JSON.parse(r) : []; };
 
-    // ===== ניווט בין מסכי עולם / אתגר =====
     const worldScreen = document.getElementById('worldScreen');
     const challengeScreen = document.getElementById('challengeScreen');
     const stage1Btn = document.getElementById('stage1Btn');
@@ -669,7 +652,7 @@
       canvas.style.width='100%';
       const rect = canvas.getBoundingClientRect();
       const w = Math.min(780, rect.width || 780);
-      const h = Math.round(w*0.27); // קטן – כדי לפנות מקום למקלדת
+      const h = Math.round(w*0.27);
       DPR = Math.max(1, Math.floor(window.devicePixelRatio || 1));
       canvas.width = Math.floor(w*DPR);
       canvas.height = Math.floor(h*DPR);
@@ -691,10 +674,7 @@
       return names[m];
     }
 
-    function indexRangeByChallenge(){
-      // עולם 1 שלב 1 – רק בתוך החמשה
-      return {min:0,max:8};
-    }
+    function indexRangeByChallenge(){ return {min:0,max:8}; }
     function randomIndex(){
       const {min,max} = indexRangeByChallenge();
       return Math.floor(Math.random()*(max-min+1))+min;
@@ -763,7 +743,6 @@
 
     // ===== מקלדת =====
     const piano = document.getElementById('piano');
-    const pianoInner = document.getElementById('pianoInner');
     const whiteKeysWrap = document.getElementById('whiteKeys');
     const blackKeysWrap = document.getElementById('blackKeys');
 
@@ -799,11 +778,16 @@
           recordAndAdvance(name===currentNote.name);
         });
         whiteKeysWrap.appendChild(div);
+        if(w.letter==='C' && w.octave===4){
+          const arrow=document.querySelector('.middleC-arrow');
+          if(arrow){
+            arrow.style.left='50%'; // נשאיר במרכז המסך, רק החץ מסביר
+          }
+        }
       });
 
       requestAnimationFrame(()=>{
         placeBlackKeys(whites);
-        centerMiddleC();
       });
     }
 
@@ -834,26 +818,7 @@
       });
     }
 
-    function centerMiddleC(){
-      const whiteElems=[...whiteKeysWrap.children];
-      if(whiteElems.length!==14) return;
-      const pianoRect=piano.getBoundingClientRect();
-      let middleKey=null;
-      whiteElems.forEach(el=>{
-        if(el.dataset.letter==='C' && el.dataset.octave==='4') middleKey=el;
-      });
-      if(!middleKey) return;
-      const keyRect=middleKey.getBoundingClientRect();
-      const keyCenter=(keyRect.left+keyRect.right)/2;
-      const pianoCenter=pianoRect.left+pianoRect.width/2;
-      const delta=pianoCenter-keyCenter;
-      const current=Number((pianoInner.dataset.tx||0));
-      const newTx=current+delta;
-      pianoInner.style.transform=`translateX(${newTx}px)`;
-      pianoInner.dataset.tx=newTx;
-    }
-
-    // ===== אודיו (סינתזה) =====
+    // ===== אודיו (כמו קודם) =====
     let audioCtx=null;
     let soundEnabled=true;
     let convolver=null;
@@ -1007,7 +972,7 @@
       src.start(now);
     }
 
-    // ===== לוגיקת אתגר =====
+    // ===== אתגר =====
     const TOTAL_QUESTIONS = 20;
     let activeGame = null;
     let history = loadHistory();
