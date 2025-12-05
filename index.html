@@ -342,27 +342,27 @@
       background:rgba(9,16,39,0.9);
       border-radius:10px;
       border:1px solid rgba(255,255,255,0.18);
-      padding:4px;
-      font-size:10px;
+      padding:3px 4px;
+      font-size:9px;             /* קטן יותר */
     }
     .stats h3{
       margin:0 0 3px;
-      font-size:11px;
+      font-size:10px;
       color:#e3f2fd;
       text-align:center;
     }
     .chips{
       display:flex;
-      gap:4px;
+      gap:3px;
       justify-content:center;
       flex-wrap:wrap;
     }
     .chip{
-      padding:2px 6px;
+      padding:2px 5px;
       border-radius:999px;
       border:1px solid rgba(255,255,255,0.18);
       background:rgba(0,0,0,0.25);
-      font-size:10px;
+      font-size:9px;
     }
     .chip.green{ border-color:#4caf50; color:#c8e6c9; font-weight:600; }
     .chip.red{ border-color:#f44336; color:#ffcdd2; font-weight:600; }
@@ -370,7 +370,7 @@
 
     .progress{
       width:100%;
-      height:7px;
+      height:6px;
       background:#1b2235;
       border-radius:999px;
       overflow:hidden;
@@ -402,7 +402,7 @@
       position:relative;
       width:100%;
       max-width:540px;
-      aspect-ratio:31/8; /* מעט נמוך יותר – כדי שיכנס במסך */
+      aspect-ratio:31/6;  /* נמוך יותר – כדי להישאר בתוך המסך */
       margin:2px auto 0;
       user-select:none;
       direction:ltr;
@@ -567,7 +567,7 @@
           </div>
         </div>
 
-        <div class="version-label">CLEFIO · גרסת דמו · v1.4.1</div>
+        <div class="version-label">CLEFIO · גרסת דמו · v1.4.2</div>
       </aside>
 
       <!-- צד ימין – עולמות / אתגר -->
@@ -804,14 +804,14 @@
       canvas.style.width='100%';
       const rect = canvas.getBoundingClientRect();
       const w = Math.min(520, rect.width || 520);
-      const h = Math.round(w*0.4); // קטן יותר כדי לפנות מקום למקלדת
+      const h = Math.round(w*0.33); // קטן יותר כדי לפנות מקום למקלדת
       DPR = Math.max(1, Math.floor(window.devicePixelRatio || 1));
       canvas.width = Math.floor(w*DPR);
       canvas.height = Math.floor(h*DPR);
       canvas.style.height = h+'px';
       ctx.setTransform(DPR,0,0,DPR,0,0);
       CW=w; CH=h;
-      lineGap = Math.min(Math.max(CH*0.11,18),32);
+      lineGap = Math.min(Math.max(CH*0.11,18),30);
       const midY = Math.round(CH*0.5);
       topLineY = Math.round(midY-2*lineGap);
       bottomLineY = Math.round(topLineY+4*lineGap);
