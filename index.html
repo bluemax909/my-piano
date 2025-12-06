@@ -22,7 +22,7 @@
       font-family:system-ui,-apple-system,"Segoe UI","Alef","Rubik",sans-serif;
       background:#000;
       color:var(--ink);
-      overflow:hidden;
+      overflow-x:hidden;
       direction:rtl;
     }
 
@@ -141,7 +141,8 @@
       border-radius:18px;
       border:1px solid rgba(255,255,255,0.18);
       padding:6px;
-      overflow:hidden;
+      overflow-y:auto;
+      overflow-x:hidden;
       display:flex;
       flex-direction:column;
     }
@@ -241,12 +242,15 @@
     .bubble.s1-1{ top:40%; left:18%; }
     .bubble.s1-2{ top:30%; left:10%; }
     .bubble.s1-3{ top:52%; left:8%; }
+
     .bubble.s2-1{ top:22%; left:40%; }
     .bubble.s2-2{ top:32%; left:48%; }
     .bubble.s2-3{ top:44%; left:44%; }
+
     .bubble.s3-1{ top:45%; left:64%; }
     .bubble.s3-2{ top:30%; left:56%; }
     .bubble.s3-3{ top:68%; left:56%; }
+
     .bubble.s4-1{ top:24%; left:86%; }
     .bubble.s4-2{ top:36%; left:76%; }
     .bubble.s4-3{ top:56%; left:88%; }
@@ -264,28 +268,6 @@
     }
 
     /* ===== מסך אתגר ===== */
-    .quiz-screen-header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:4px;
-      font-size:12px;
-    }
-    .quiz-screen-header h2{
-      margin:0;
-      font-size:14px;
-      color:#fffde7;
-    }
-    .quiz-screen-header button{
-      padding:4px 10px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,0.4);
-      background:rgba(0,0,0,0.35);
-      color:#f5f5f5;
-      cursor:pointer;
-      font-size:12px;
-    }
-
     .quiz-main{
       flex:1;
       display:flex;
@@ -294,6 +276,23 @@
       align-items:center;
       padding:2px 2px 4px;
       gap:3px;
+    }
+
+    .quiz-top-row{
+      width:100%;
+      max-width:780px;
+      display:flex;
+      justify-content:flex-start;
+      margin-bottom:2px;
+    }
+    .quiz-top-row button{
+      padding:3px 9px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.4);
+      background:rgba(0,0,0,0.35);
+      color:#f5f5f5;
+      cursor:pointer;
+      font-size:11px;
     }
 
     .stats{
@@ -363,13 +362,11 @@
       border-radius:8px;
     }
 
-    .muted{ color:#c5cfdd; font-size:11px; }
-
     .piano{
       position:relative;
       width:100%;
-      max-width:780px;
-      aspect-ratio:31/6;
+      max-width:560px;    /* הוקטן ~30% */
+      aspect-ratio:31/7;
       margin:2px auto 0;
       user-select:none;
       direction:ltr;
@@ -414,6 +411,7 @@
       z-index:10;
     }
 
+    /* חץ דו מרכזי – עכשיו תמיד באמצע המקלדת, עם חץ כלפי מעלה */
     .middleC-arrow{
       position:absolute;
       bottom:-20px;
@@ -511,7 +509,7 @@
         </div>
         <div class="top-bar-right">
           <div>אתגר דמו – שלב 1 בתוך החמשה</div>
-          <div class="version-label">v1.5.1 · דמו</div>
+          <div class="version-label">v1.5.4 · דמו</div>
         </div>
       </header>
 
@@ -562,12 +560,11 @@
 
         <!-- מסך אתגר דמו -->
         <section id="challengeScreen" class="screen">
-          <div class="quiz-screen-header">
-            <h2>אתגר דמו · שלב 1 – בתוך החמשה</h2>
-            <button id="backToWorldBtn">⬅ חזרה לעולם</button>
-          </div>
-
           <div class="quiz-main">
+            <div class="quiz-top-row">
+              <button id="backToWorldBtn">⬅ חזרה לעולם</button>
+            </div>
+
             <div class="stats">
               <h3>סטטיסטיקה — אתגר נוכחי</h3>
               <div class="chips">
@@ -584,11 +581,10 @@
 
             <canvas id="staffCanvas" aria-label="חמשה במפתח סול"></canvas>
 
-            <p class="muted">בחר את שם התו בעזרת המקלדת (דו מרכזי מסומן):</p>
             <div class="piano" id="piano">
               <div class="white-keys" id="whiteKeys"></div>
               <div class="black-keys" id="blackKeys"></div>
-              <div class="middleC-arrow"><span>⬇ דו מרכזי</span></div>
+              <div class="middleC-arrow"><span>⬆ דו מרכזי</span></div>
             </div>
 
             <div id="feedback"></div>
@@ -602,7 +598,6 @@
   <div id="confetti" class="confetti" aria-hidden="true"></div>
 
   <script>
-    // ===== קונפיג דמו: בתוך החמשה + טיימר 15 שניות =====
     const CHALLENGE_CONFIG = {
       region: 'staff',
       timed: true,
@@ -636,9 +631,16 @@
 
     stage1Btn.addEventListener('click',()=>{
       switchScreen('challenge');
-      if(!activeGame){
-        startNewGame();
-      }
+      // מוודאים שהמסך כבר גלוי לפני מדידות
+      setTimeout(()=>{
+        sizeCanvas();
+        buildPiano();
+        if(!activeGame){
+          startNewGame();
+        }else{
+          pickAndDraw();
+        }
+      },0);
     });
     backToWorldBtn.addEventListener('click',()=>switchScreen('world'));
 
@@ -652,7 +654,7 @@
       canvas.style.width='100%';
       const rect = canvas.getBoundingClientRect();
       const w = Math.min(780, rect.width || 780);
-      const h = Math.round(w*0.27);
+      const h = Math.round(w*0.22);
       DPR = Math.max(1, Math.floor(window.devicePixelRatio || 1));
       canvas.width = Math.floor(w*DPR);
       canvas.height = Math.floor(h*DPR);
@@ -778,12 +780,6 @@
           recordAndAdvance(name===currentNote.name);
         });
         whiteKeysWrap.appendChild(div);
-        if(w.letter==='C' && w.octave===4){
-          const arrow=document.querySelector('.middleC-arrow');
-          if(arrow){
-            arrow.style.left='50%'; // נשאיר במרכז המסך, רק החץ מסביר
-          }
-        }
       });
 
       requestAnimationFrame(()=>{
@@ -818,7 +814,7 @@
       });
     }
 
-    // ===== אודיו (כמו קודם) =====
+    // ===== אודיו =====
     let audioCtx=null;
     let soundEnabled=true;
     let convolver=null;
@@ -988,6 +984,8 @@
     const timerChip = document.getElementById('timerChip');
     const progressBar = document.getElementById('progressBar');
     const feedback = document.getElementById('feedback');
+    const toast = document.getElementById('toast');
+    const confettiLayer = document.getElementById('confetti');
 
     let timerInterval=null;
     const timerControls={
@@ -1043,6 +1041,24 @@
     function calcPercent(c,w){ const t=c+w; return t? Math.round((c/t)*100):0; }
     function formatDT(iso){ try{ return new Date(iso).toLocaleString('he-IL',{hour12:false}); }catch(e){ return iso; } }
 
+    function confetti(N=60){
+      confettiLayer.innerHTML='';
+      const W=window.innerWidth;
+      for(let i=0;i<N;i++){
+        const p=document.createElement('i');
+        p.style.left=Math.random()*W+'px';
+        p.style.background=['#ffd54f','#4fc3f7','#81c784','#ff8a65'][i%4];
+        p.style.animationDelay=(Math.random()*0.25)+'s';
+        confettiLayer.appendChild(p);
+      }
+      setTimeout(()=>{ confettiLayer.innerHTML=''; },900);
+    }
+    function showToast(msg){
+      toast.textContent=msg;
+      toast.classList.add('show');
+      setTimeout(()=>toast.classList.remove('show'),1600);
+    }
+
     function pickAndDraw(){
       currentNote=randomNote();
       drawNoteByIndex(currentNote.index);
@@ -1057,26 +1073,6 @@
       feedback.classList.remove('correct','wrong');
       resetAndMaybeStartTimer();
       questionStartHR=performance.now();
-    }
-
-    const toast = document.getElementById('toast');
-    const confettiLayer = document.getElementById('confetti');
-    function showToast(msg){
-      toast.textContent=msg;
-      toast.classList.add('show');
-      setTimeout(()=>toast.classList.remove('show'),1600);
-    }
-    function confetti(N=60){
-      confettiLayer.innerHTML='';
-      const W=window.innerWidth;
-      for(let i=0;i<N;i++){
-        const p=document.createElement('i');
-        p.style.left=Math.random()*W+'px';
-        p.style.background=['#ffd54f','#4fc3f7','#81c784','#ff8a65'][i%4];
-        p.style.animationDelay=(Math.random()*0.25)+'s';
-        confettiLayer.appendChild(p);
-      }
-      setTimeout(()=>{ confettiLayer.innerHTML=''; },900);
     }
 
     function recordAndAdvance(ok){
@@ -1140,7 +1136,6 @@
       const stored=loadActiveGame();
       if(stored && stored.currentQuestion<=TOTAL_QUESTIONS){
         activeGame=stored;
-        pickAndDraw();
       }
     }
 
@@ -1151,26 +1146,19 @@
       },{once:true});
     });
 
-    (function selfTests(){
-      try{
-        sizeCanvas();
-        buildPiano();
-        console.assert(typeof randomNote==='function','randomNote fn');
-      }catch(err){
-        console.error('Self tests failed:',err);
-      }
-    })();
-
     function init(){
-      sizeCanvas();
-      buildPiano();
+      // תמיד מתחילים במסך העולם
+      switchScreen('world');
       resumeActiveIfAny();
     }
 
     window.addEventListener('resize',()=>{
-      sizeCanvas();
-      buildPiano();
-      if(activeGame) pickAndDraw();
+      // רק אם מסך האתגר גלוי נבצע מדידות ורינדור מחדש
+      if(challengeScreen.classList.contains('active')){
+        sizeCanvas();
+        buildPiano();
+        if(activeGame) pickAndDraw();
+      }
     });
 
     init();
