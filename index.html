@@ -365,7 +365,7 @@
     .piano{
       position:relative;
       width:100%;
-      max-width:560px;    /* הוקטן ~30% */
+      max-width:560px;
       aspect-ratio:31/7;
       margin:2px auto 0;
       user-select:none;
@@ -375,7 +375,7 @@
       position:absolute;
       inset:0;
       display:grid;
-      grid-template-columns:repeat(14,1fr);
+      grid-template-columns:repeat(22,1fr); /* יותר קלידים לבנים */
       column-gap:0;
       align-items:end;
       justify-items:stretch;
@@ -411,7 +411,7 @@
       z-index:10;
     }
 
-    /* חץ דו מרכזי – עכשיו תמיד באמצע המקלדת, עם חץ כלפי מעלה */
+    /* חץ דו מרכזי – עוגן על הקליד של C4, חץ כלפי מעלה */
     .middleC-arrow{
       position:absolute;
       bottom:-20px;
@@ -433,7 +433,7 @@
 
     #feedback{
       font-weight:bold;
-      margin-top:2px;
+      margin-top:10px;   /* הוזז מעט למטה כדי לא להתנגש עם "דו מרכזי" */
       min-height:20px;
       font-size:12px;
       text-align:center;
@@ -509,7 +509,7 @@
         </div>
         <div class="top-bar-right">
           <div>אתגר דמו – שלב 1 בתוך החמשה</div>
-          <div class="version-label">v1.5.4 · דמו</div>
+          <div class="version-label">v1.5.5 · דמו</div>
         </div>
       </header>
 
@@ -584,7 +584,6 @@
             <div class="piano" id="piano">
               <div class="white-keys" id="whiteKeys"></div>
               <div class="black-keys" id="blackKeys"></div>
-              <div class="middleC-arrow"><span>⬆ דו מרכזי</span></div>
             </div>
 
             <div id="feedback"></div>
@@ -631,7 +630,6 @@
 
     stage1Btn.addEventListener('click',()=>{
       switchScreen('challenge');
-      // מוודאים שהמסך כבר גלוי לפני מדידות
       setTimeout(()=>{
         sizeCanvas();
         buildPiano();
@@ -748,7 +746,31 @@
     const whiteKeysWrap = document.getElementById('whiteKeys');
     const blackKeysWrap = document.getElementById('blackKeys');
 
-    const whiteOrder=['C','D','E','F','G','A','B'];
+    const whiteLayout = [
+      {letter:'F', octave:3},
+      {letter:'G', octave:3},
+      {letter:'A', octave:3},
+      {letter:'B', octave:3},
+      {letter:'C', octave:4},
+      {letter:'D', octave:4},
+      {letter:'E', octave:4},
+      {letter:'F', octave:4},
+      {letter:'G', octave:4},
+      {letter:'A', octave:4},
+      {letter:'B', octave:4},
+      {letter:'C', octave:5},
+      {letter:'D', octave:5},
+      {letter:'E', octave:5},
+      {letter:'F', octave:5},
+      {letter:'G', octave:5},
+      {letter:'A', octave:5},
+      {letter:'B', octave:5},
+      {letter:'C', octave:6},
+      {letter:'D', octave:6},
+      {letter:'E', octave:6},
+      {letter:'F', octave:6}
+    ];
+
     function noteNameFromLetter(L){
       switch(L){
         case 'C':return 'דו';
@@ -764,11 +786,8 @@
     function buildPiano(){
       whiteKeysWrap.innerHTML='';
       blackKeysWrap.innerHTML='';
-      const whites=[];
-      for(let o=4;o<=5;o++){
-        for(const L of whiteOrder){ whites.push({letter:L, octave:o}); }
-      }
-      whites.forEach(w=>{
+
+      whiteLayout.forEach(w=>{
         const div=document.createElement('div');
         div.className='wkey';
         const name=noteNameFromLetter(w.letter);
@@ -779,24 +798,35 @@
           if(!timerControls.canAnswer) return;
           recordAndAdvance(name===currentNote.name);
         });
+
+        // מסמן דו מרכזי (C4) בחץ כלפי מעלה
+        if(w.letter==='C' && w.octave===4){
+          const arrow=document.createElement('div');
+          arrow.className='middleC-arrow';
+          arrow.innerHTML='<span>⬆ דו מרכזי</span>';
+          div.appendChild(arrow);
+        }
+
         whiteKeysWrap.appendChild(div);
       });
 
       requestAnimationFrame(()=>{
-        placeBlackKeys(whites);
+        placeBlackKeys();
       });
     }
 
-    function placeBlackKeys(whites){
+    function placeBlackKeys(){
       blackKeysWrap.innerHTML='';
       const pianoRect=piano.getBoundingClientRect();
       const whiteElems=[...whiteKeysWrap.children];
-      if(whiteElems.length!==14) return;
+      if(whiteElems.length!==whiteLayout.length) return;
+
       const centers=whiteElems.map(el=>{
         const r=el.getBoundingClientRect();
         return {left:r.left,right:r.right,center:(r.left+r.right)/2,width:r.width};
       });
-      const whitesSeq=whites.map(w=>w.letter);
+
+      const whitesSeq=whiteLayout.map(w=>w.letter);
       const blackIdx=[];
       whitesSeq.forEach((L,i)=>{
         if(L==='C'||L==='D'||L==='F'||L==='G'||L==='A'){
@@ -1147,13 +1177,11 @@
     });
 
     function init(){
-      // תמיד מתחילים במסך העולם
       switchScreen('world');
       resumeActiveIfAny();
     }
 
     window.addEventListener('resize',()=>{
-      // רק אם מסך האתגר גלוי נבצע מדידות ורינדור מחדש
       if(challengeScreen.classList.contains('active')){
         sizeCanvas();
         buildPiano();
